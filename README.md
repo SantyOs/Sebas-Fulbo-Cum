@@ -56,9 +56,9 @@ El renderer 2D se conserva temporalmente como referencia de migración; no se im
 
 ## Estado de la entrega
 
-El despliegue automático desde `master` está preparado con GitHub Actions y SSH
-para un servidor Linux con Nginx. Falta configurar el destino y sus secretos para
-activarlo: [guía de despliegue](docs/despliegue.md).
+El despliegue desde `master` usa GitHub Actions y un runner dedicado en Ubuntu con
+Docker y Nginx. Acceso por Tailscale: `http://100.116.191.99:8086`.
+Consulta la [guía de despliegue](docs/despliegue.md).
 
 La compilación y las pruebas automatizadas están verificadas. La apariencia final, un partido jugado de principio a fin, diez reinicios WebGL y el objetivo de rendimiento en la RTX 3050 Laptop **siguen pendientes de comprobación real en navegador**. No hay un navegador conectado al entorno de implementación.
 

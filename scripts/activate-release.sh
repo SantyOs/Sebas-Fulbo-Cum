@@ -20,7 +20,25 @@ if [[ -n "$previous" ]]; then
   ln -sfn "$previous" "$root/previous.next"
   mv -Tf "$root/previous.next" "$root/previous"
 fi
-ln -s "$release" "$root/current.next"
+ln -sfn "$release" "$root/current.next"
 mv -Tf "$root/current.next" "$root/current"
+if [[ -n "${HEALTHCHECK_URL:-}" ]]; then
+  healthy=false
+  for attempt in 1 2 3 4 5; do
+    if curl --fail --silent --max-time 5 "$HEALTHCHECK_URL" | grep -Fq "\"commit\":\"$commit\""; then
+      healthy=true
+      break
+    fi
+    sleep 2
+  done
+  if [[ "$healthy" != true ]]; then
+    if [[ -n "$previous" ]]; then
+      ln -sfn "$previous" "$root/current.rollback"
+      mv -Tf "$root/current.rollback" "$root/current"
+    fi
+    echo 'Release HTTP verification failed; restored previous version when available.' >&2
+    exit 1
+  fi
+fi
 rm -- "$archive"
 printf 'Activated %s\n' "$commit"

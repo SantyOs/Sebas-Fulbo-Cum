@@ -4,14 +4,36 @@ El juego es estático: GitHub Actions instala dependencias, ejecuta las pruebas 
 compila `dist/`. No necesita base de datos ni Node en producción. El workflow
 valida cada push a `master` y cada pull request hacia esa rama.
 
-**Estado:** automatización preparada para Ubuntu Server `192.168.1.10`, SSH puerto
-22, usuario `santiago`. La clave de este PC fue rechazada; instalación pendiente.
-El paso de publicación está desactivado hasta establecer `DEPLOY_ENABLED=true`.
-Una validación verde por sí sola no significa que el juego esté publicado.
+Servidor: Ubuntu en `100.116.191.99` (Tailscale), SSH puerto 22, usuario `santiago`.
+El juego se sirve en `http://100.116.191.99:8086`. Requiere acceso a esa red Tailscale.
+La configuración de producción usa `DEPLOY_ENABLED=true` y `DEPLOY_TRANSPORT=local`.
+Una ejecución completa debe mostrar tanto `build` como `deploy-lan` en verde.
 
 ## Destino previsto
 
-### Servidor local 192.168.1.10
+### Instalación Docker en el servidor Tailscale
+
+`deploy/compose.yml` define Nginx y un runner dedicado. Sus archivos se instalan en
+`/srv/projects/sebas-fulbo-deploy`, con el proyecto Compose `sebas-fulbo`. El juego
+y sus versiones viven en `/srv/sebas-fulbo`. Ambos contenedores se reinician
+automáticamente con Docker; el runner conserva su registro en un volumen propio.
+
+El runner se ejecuta sin root ni acceso al socket Docker. Solo tiene escritura
+en su volumen de trabajo y en la carpeta del juego. Nginx monta el juego en lectura.
+El puerto 8086 se publica únicamente en la IP Tailscale del servidor.
+
+```bash
+cd /srv/projects/sebas-fulbo-deploy
+docker compose -p sebas-fulbo ps
+docker compose -p sebas-fulbo logs --tail=50 runner
+docker compose -p sebas-fulbo up -d
+```
+
+Para reconstruir el runner, usar `docker compose -p sebas-fulbo build runner`.
+El runner puede actualizarse dentro de su volumen; reconstruir la imagen no
+sustituye ese volumen. No eliminarlo sin preparar un nuevo registro en GitHub.
+
+### Registro inicial del runner
 
 Los runners públicos no pueden llegar a esa IP privada. La opción prevista es
 instalar un runner de GitHub Actions en Ubuntu con un usuario dedicado sin sudo,
@@ -19,17 +41,18 @@ con permiso de escritura solo sobre la aplicación. No requiere abrir puertos de
 router: el runner establece conexiones salientes con GitHub.
 
 1. Preparar Nginx y `/srv/sebas-fulbo` con propietario igual al usuario del runner.
-   Para probar por LAN, el virtual host puede usar `server_name 192.168.1.10;`.
+   El virtual host incluido corresponde a `100.116.191.99`.
 2. En Settings → Actions → Runners → New self-hosted runner, seleccionar Linux
-   y seguir los comandos que GitHub genera para el repositorio. Agregar la etiqueta
-   `sebas-fulbo` e instalarlo como servicio. El token de registro es temporal y
+   y seguir los comandos que GitHub genera para el repositorio dentro del contenedor
+   `runner` (`docker compose -p sebas-fulbo run --rm runner ./config.sh ...`).
+   Agregar la etiqueta `sebas-fulbo`. El token de registro es temporal y
    nunca debe guardarse en Git. Usar un runner dedicado a este repositorio.
 3. Configurar las variables `DEPLOY_TRANSPORT=local` y `DEPLOY_ENABLED=true`.
    Este modo no necesita secretos SSH: descarga el artefacto validado y activa la
    versión directamente en el servidor. Los pull requests solo ejecutan validación
    en runners públicos; nunca deben ejecutar código en el runner de producción.
 4. Ejecutar el workflow sobre `master` y comprobar
-   `http://192.168.1.10/version.json` y el juego desde la LAN.
+   `http://100.116.191.99:8086/version.json` y el juego desde Tailscale.
 
 El acceso por Internet requerirá un dominio y una ruta de entrada configurada
 aparte; publicar por LAN no hace accesible el juego fuera de casa.
@@ -72,7 +95,9 @@ de hosting, adaptar el transporte antes de activarlo. La carpeta dedicada es
 
 El workflow copia únicamente `dist/` por SSH con comprobación estricta de host.
 Extrae cada versión en un directorio nuevo, valida los archivos principales y
-cambia el enlace `current` atómicamente. Nginx no necesita reiniciarse en cada
+cambia el enlace `current` atómicamente. El despliegue local comprueba por HTTP
+que Nginx sirve el SHA esperado; si falla restaura la versión anterior cuando existe.
+Nginx no necesita reiniciarse en cada
 push. `previous` conserva el destino anterior y las versiones se mantienen en
 `releases/`; su limpieza es manual para no borrar una versión necesaria.
 
@@ -90,6 +115,7 @@ versión anterior pueden dejar de estar disponibles desde `current`. Los jugador
 personalizados se guardan en el navegador, no en el servidor. Para trasladarlos a
 otro equipo o dominio, exportar/importar el JSON del editor.
 
-No se ha probado todavía SSH, Nginx, HTTPS ni disponibilidad pública en un servidor
-real. El workflow usa las acciones oficiales [checkout](https://github.com/actions/checkout)
+HTTPS y disponibilidad pública quedan fuera de esta instalación Tailscale. La
+revisión visual y auditiva del juego requiere una sesión de navegador real.
+El workflow usa las acciones oficiales [checkout](https://github.com/actions/checkout)
 y [setup-node](https://github.com/actions/setup-node), fijadas por SHA.

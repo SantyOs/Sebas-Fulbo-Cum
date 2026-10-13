@@ -64,6 +64,8 @@ jobs:
           path: dist
       - name: Activate local release
         shell: bash
+        env:
+          HEALTHCHECK_URL: http://web/version.json
         run: |
           set -euo pipefail
           printf '{"commit":"%s"}\n' "$GITHUB_SHA" > dist/version.json
