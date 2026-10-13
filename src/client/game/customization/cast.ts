@@ -1,6 +1,7 @@
 import type { MatchSnapshot } from "../contracts";
 import type { CastTraits, SquadPlayer, TeamData } from "../teams/types";
 import { makeRatings, type RatingTuple } from "../teams/types";
+import { CELEBRATIONS } from "./profile";
 
 interface CastMember extends CastTraits {
   name: string;
@@ -18,12 +19,13 @@ export const PLAYER_CAST: CastMember[] = [
   { name: "Lucumi PriPra" },
   {
     name: "Maria Alejandra Osorio",
+    refusesPasses: true,
     phrases: ["No sé, nunca me había pasado, primera vez que me pasa"],
   },
   { name: "Lilith" },
   { name: "Nelson Bedoya", phrases: ["¡Señores del jurado!"] },
   { name: "Sebastian Londoño (C)", r: [90, 88, 88, 90, 62, 84] },
-  { name: "Monica Bernal", still: true, passShare: 0.4 },
+  { name: "Monica Bernal", monkeyBubble: true, still: true, passShare: 0.4 },
 ];
 
 export const RIVAL_CAST: CastMember[] = [
@@ -64,9 +66,12 @@ const withCast = (team: TeamData, cast: CastMember[]): TeamData => ({
     return {
       ...p,
       sourceId: p.sourceId ?? p.num,
-      name,
-      cast: traits,
-      ratings: r ? makeRatings(p.role, r) : p.ratings,
+      name: p.custom?.name ?? name,
+      cast: {
+        ...traits,
+        celebrationStyle: CELEBRATIONS[i % CELEBRATIONS.length],
+      },
+      ratings: r && !p.custom ? makeRatings(p.role, r) : p.ratings,
     };
   }),
 });
@@ -90,7 +95,11 @@ export class CastLineCursor {
     for (const event of snapshot.events) {
       if (event.id <= this.last) continue;
       this.last = event.id;
-      if (event.kind !== "contact" || !event.fromId) continue;
+      if (
+        (event.kind !== "contact" && event.kind !== "refusal") ||
+        !event.fromId
+      )
+        continue;
       const player = snapshot.players.find((p) => p.id === event.playerId);
       const cast = player?.cast;
       if (!player || !cast || (!cast.phrases?.length && !cast.sound)) continue;

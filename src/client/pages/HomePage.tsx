@@ -277,6 +277,8 @@ export default function HomePage() {
         >
           <PlayerEditor
             profile={birthday}
+            homeTeamIndex={homeIndex}
+            awayTeamIndex={awayIndex}
             onClose={() => setEditor(false)}
             onSave={(p) => {
               setBirthday(p);

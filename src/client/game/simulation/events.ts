@@ -9,6 +9,8 @@ export function recordEvent(
   team?: Team,
   from?: PlayerEntity | null,
 ) {
+  if (kind === "pass" || kind === "shot" || kind === "restart")
+    state.refusedPasses.clear();
   state.events.push({
     id: ++state.eventSequence,
     tick: state.tick,

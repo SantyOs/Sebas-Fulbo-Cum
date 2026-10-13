@@ -5,6 +5,8 @@ import { MatchSimulation } from "./simulation";
 import { pickPassTarget } from "./simulation/actions";
 import { resolvePossession } from "./simulation/possession";
 import { TEAMS } from "./teams";
+import { updateBall } from "./simulation/physics";
+import { recordEvent } from "./simulation/events";
 
 const castSim = () => {
   const [home, away] = applyCast(TEAMS[0], TEAMS[1]);
@@ -16,6 +18,43 @@ const find = (sim: MatchSimulation, name: string) =>
   )!;
 
 describe("office cast", () => {
+  it("lets Maria's teammate passes through without touching or repeating her line", () => {
+    const sim = castSim(),
+      s = sim.state,
+      maria = find(sim, "Maria"),
+      passer = find(sim, "Sebastian");
+    Object.assign(s, { freeze: 0, owner: null, ballFree: 0, kickerLock: 0 });
+    for (const p of [...s.homePlayers, ...s.awayPlayers])
+      Object.assign(p, { x: 100, y: 100 });
+    Object.assign(maria, { x: 700, y: 500 });
+    s.lastKicker = passer;
+    s.lastKickKind = "pass";
+    recordEvent(s, "pass", passer);
+    Object.assign(s.ball, { x: 700, y: 500, z: 0, vx: 200, vy: 0, vz: 0 });
+    s.offsideFlags.add(maria.id);
+    resolvePossession(s);
+    resolvePossession(s);
+    expect(s.owner).toBeNull();
+    expect(s.lastKicker).toBe(passer);
+    expect(s.ball.vx).toBe(200);
+    expect(s.offsideFlags.has(maria.id)).toBe(true);
+    expect(s.events.filter((e) => e.kind === "refusal")).toHaveLength(1);
+    const lines = new CastLineCursor().consume(sim.snapshot());
+    expect(lines[0]?.text).toBe(maria.cast!.phrases![0]);
+    recordEvent(s, "pass", passer);
+    resolvePossession(s);
+    expect(s.events.filter((e) => e.kind === "refusal")).toHaveLength(2);
+    // A fast swept pass must travel beyond her, rather than stick at her radius.
+    Object.assign(s.ball, { x: 650, vx: 1200 });
+    updateBall(s, 0.1);
+    expect(s.ball.x).toBeGreaterThan(740);
+    expect(s.owner).toBeNull();
+    s.offsideFlags.clear();
+    s.lastKicker = find(sim, "Yenny");
+    Object.assign(s.ball, { x: 700, vx: 100 });
+    resolvePossession(s);
+    expect(s.owner).toBe(maria);
+  });
   it("renames by side without touching rosters or simulation IDs", () => {
     const [home, away] = applyCast(TEAMS[0], TEAMS[1]);
     expect(home.players[9].name).toBe("Sebastian Londoño (C)");

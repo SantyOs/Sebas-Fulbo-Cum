@@ -1103,7 +1103,7 @@
 }
 .birthday-goal-title {
   position: absolute;
-  top: 31%;
+  bottom: 12%;
   left: 50%;
   transform: translateX(-50%);
   width: min(600px, 85%);

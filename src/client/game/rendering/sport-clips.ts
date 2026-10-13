@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { celebrationClips } from "./celebration-clips";
 
 type Pose = Record<string, [number, number, number]>;
 /** Additive clips augment locomotion; their transforms never drive simulation. */
@@ -21,7 +22,7 @@ function clip(name: string, duration: number, pose: Pose) {
     THREE.AdditiveAnimationBlendMode,
   );
 }
-export function sportClips() {
+export function sportClips(model: THREE.Object3D, idle: THREE.AnimationClip) {
   return [
     clip("pass", 0.32, {
       thigh_r: [-0.7, 0, 0],
@@ -74,30 +75,6 @@ export function sportClips() {
       lowerarm_l: [-0.9, 0, 0],
       lowerarm_r: [-0.9, 0, 0],
     }),
-    clip("celebrate_dance", 0.7, {
-      upperarm_l: [-1.2, 0, -0.8],
-      upperarm_r: [-0.3, 0, 1.2],
-      spine_01: [0, 0.3, 0.15],
-      thigh_l: [-0.5, 0, 0],
-      calf_l: [0.65, 0, 0],
-    }),
-    clip("celebrate_dab", 1.4, {
-      upperarm_l: [-1.6, 0, -1.1],
-      upperarm_r: [-1.2, 0, 0.8],
-      lowerarm_r: [-1.8, 0, 0],
-      Head: [0.2, 0, -0.35],
-    }),
-    clip("celebrate_heart", 1.8, {
-      upperarm_l: [-1.2, 0, -0.25],
-      upperarm_r: [-1.2, 0, 0.25],
-      lowerarm_l: [-1.9, 0, -0.5],
-      lowerarm_r: [-1.9, 0, 0.5],
-    }),
-    clip("celebrate", 1.2, {
-      upperarm_l: [-2.8, 0, -0.3],
-      upperarm_r: [-2.8, 0, 0.3],
-      lowerarm_l: [-0.2, 0, 0],
-      lowerarm_r: [-0.2, 0, 0],
-    }),
+    ...celebrationClips(model, idle),
   ];
 }

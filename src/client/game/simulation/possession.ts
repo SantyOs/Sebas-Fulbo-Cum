@@ -127,6 +127,23 @@ export function updateJostle(state: MatchState, dt: number) {
   pokeTackle(state, challenger, Infinity, false);
 }
 
+/** A refusal is not a touch: retain kick provenance and offside flags. */
+export function refusesPass(state: MatchState, p: PlayerEntity): boolean {
+  return (
+    !!p.cast?.refusesPasses &&
+    state.lastKickKind === "pass" &&
+    !!state.lastKicker &&
+    state.lastKicker !== p &&
+    state.lastKicker.team === p.team
+  );
+}
+export function announceRefusal(state: MatchState, p: PlayerEntity) {
+  if (state.refusedPasses.has(p.id)) return;
+  state.refusedPasses.add(p.id);
+  recordEvent(state, "refusal", p, undefined, state.lastKicker);
+  if (state.passReceiver === p) state.passReceiver = null;
+}
+
 export function resolvePossession(state: MatchState) {
   const prev = state.owner;
 
@@ -161,6 +178,10 @@ export function resolvePossession(state: MatchState) {
     // pull in / parry a shot they get across to.
     const reach = p.isGK ? keeperReach(state, p, ballSpeed) : CONTROL_DIST;
     const d = dist(p, state.ball);
+    if (refusesPass(state, p)) {
+      if (d <= reach) announceRefusal(state, p);
+      continue;
+    }
     if (d <= reach && d < bestD) {
       bestD = d;
       best = p;

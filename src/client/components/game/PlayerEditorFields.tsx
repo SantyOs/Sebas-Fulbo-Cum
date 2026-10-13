@@ -8,7 +8,19 @@ import {
   type PlayerCustomization,
 } from "../../game/customization/profile";
 const hairNames = ["Corto", "Rizado", "Cresta", "Largo", "Rapado"];
-const celebrationNames = ["Brazos arriba", "Baile", "Dab", "Corazón"];
+const celebrationNames = [
+  "Brazos arriba",
+  "Baile",
+  "Dab",
+  "Corazón",
+  "Avioncito",
+  "De rodillas",
+  "Arquero",
+  "Saludo",
+  "Silencio",
+  "Puño al cielo",
+  "Salto y giro",
+];
 const soundNames = [
   "Fanfarria + público",
   "Fiesta + público",
@@ -143,7 +155,7 @@ export function PlayerEditorFields({
           <label>
             Nombre o apodo
             <input
-              maxLength={24}
+              maxLength={40}
               value={custom.name}
               onChange={(e) => update({ name: e.target.value })}
             />
@@ -340,6 +352,14 @@ export function PlayerEditorFields({
             value={custom.celebration.jump}
             onChange={(v) => changeCelebration({ jump: v })}
           />
+          <label className="check-label">
+            <input
+              type="checkbox"
+              checked={custom.celebration.closeup !== false}
+              onChange={(e) => changeCelebration({ closeup: e.target.checked })}
+            />
+            Primer plano al marcar
+          </label>
           <label className="check-label">
             <input
               type="checkbox"

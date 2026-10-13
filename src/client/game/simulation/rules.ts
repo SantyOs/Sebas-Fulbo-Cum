@@ -1,5 +1,6 @@
 import { recordEvent } from "./events";
 import {
+  CELEBRATION_SECS,
   FIELD_H,
   FIELD_W,
   goalBottom,
@@ -444,9 +445,11 @@ export function handleGoals(state: MatchState) {
     if (state.ball.x >= FIELD_W - 2) {
       state.homeScore += 1;
       recordEvent(state, "goal", state.lastKicker, "home");
-      setMessage(state, "GOAL!", 1.2);
-      practiceResetBall(state);
-      state.freeze = 1.0; // brief hold so the GOAL! reads before resuming
+      setMessage(state, "GOAL!", CELEBRATION_SECS);
+      state.celebration = CELEBRATION_SECS;
+      state.scorer = state.lastKicker;
+      state.owner = null;
+      state.ball.vx = state.ball.vy = state.ball.vz = 0;
     } else if (state.ball.x <= 2) {
       practiceResetBall(state);
     }
@@ -476,7 +479,6 @@ export function startCelebration(
   side: "left" | "right",
 ) {
   recordEvent(state, "goal", state.lastKicker, scoringTeam);
-  const CELEBRATION_SECS = 4;
   state.celebration = CELEBRATION_SECS;
   state.celebrateTeam = scoringTeam;
   state.pendingKickoff = nextKickoff;
@@ -506,6 +508,10 @@ export function updateCelebration(state: MatchState, dt: number) {
   const cornerY = FIELD_H * 0.82;
 
   for (const p of [...state.homePlayers, ...state.awayPlayers]) {
+    if (p === state.scorer || p.cast?.still) {
+      p.vx = p.vy = 0;
+      continue;
+    }
     if (p.celebrating) {
       // Scoring side: wheel away to the corner / mob the scorer.
       let tx = cornerX;

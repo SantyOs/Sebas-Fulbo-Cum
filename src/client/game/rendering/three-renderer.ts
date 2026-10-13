@@ -1,3 +1,4 @@
+import { GoalFocus } from "./goal-focus";
 import * as THREE from "three";
 import type {
   GameRenderer,
@@ -21,6 +22,50 @@ export class ThreeRenderer implements GameRenderer {
   private anchor = new THREE.Vector3();
   private cameraReady = false;
   private zoom = 1.18;
+  private focus = new GoalFocus();
+  private monkeyVideo?: HTMLVideoElement;
+  private monkeySprite?: THREE.Sprite;
+  private monkeyPlayer?: string;
+  private paused = false;
+  setPaused(paused: boolean) {
+    this.paused = paused;
+    if (paused) this.monkeyVideo?.pause();
+    else if (this.monkeyVideo) void this.monkeyVideo.play().catch(() => {});
+  }
+  private addMonkey(playerId: string, name: string) {
+    this.monkeyPlayer = playerId;
+    this.say(playerId, "", name, true);
+    this.bubbles.get(playerId)!.life = Infinity;
+    const video = document.createElement("video");
+    video.src = `${import.meta.env.BASE_URL}assets/video/monica-monkey.webm`;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    this.monkeyVideo = video;
+    const texture = new THREE.VideoTexture(video);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        sizeAttenuation: false,
+      }),
+    );
+    sprite.scale.set(0.23, 0.13, 1);
+    sprite.center.set(0.5, 0);
+    sprite.renderOrder = 11;
+    this.monkeySprite = sprite;
+    this.scene.add(sprite);
+    video.onerror = () => {
+      if (this.disposed) return;
+      this.say(playerId, "Video no disponible", name);
+      this.bubbles.get(playerId)!.life = Infinity;
+    };
+    if (!this.paused) void video.play().catch(() => {});
+  }
   setCameraZoom(zoom: number) {
     this.zoom = THREE.MathUtils.clamp(zoom, 1, 1.4);
   }
@@ -30,13 +75,13 @@ export class ThreeRenderer implements GameRenderer {
   private gpu: string;
   private bubbles = new Map<string, { sprite: THREE.Sprite; life: number }>();
   /** Screen-sized speech bubble over a player; replaces his previous one. */
-  say(playerId: string, text: string) {
+  say(playerId: string, text: string, name: string, video = false) {
     if (this.disposed) return;
     this.dropBubble(playerId);
-    const lines: string[] = [];
-    for (const word of text.split(" ")) {
+    const lines: string[] = [name];
+    for (const word of text.trim() ? text.split(" ") : []) {
       const last = lines.length - 1;
-      if (last >= 0 && (lines[last] + " " + word).length <= 22)
+      if (last >= 1 && (lines[last] + " " + word).length <= 22)
         lines[last] += " " + word;
       else lines.push(word);
     }
@@ -49,11 +94,11 @@ export class ThreeRenderer implements GameRenderer {
       tail = 26;
     ctx.font = font;
     const textW = Math.max(...lines.map((l) => ctx.measureText(l).width));
-    canvas.width = Math.ceil(textW + pad * 2);
-    canvas.height = lines.length * lineH + pad * 2 + tail;
+    canvas.width = Math.ceil(Math.max(textW + pad * 2, video ? 420 : 0));
+    canvas.height = lines.length * lineH + pad * 2 + tail + (video ? 220 : 0);
     const w = canvas.width,
       h = canvas.height - tail;
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "rgba(255,255,255,0.78)";
     ctx.strokeStyle = "#11161f";
     ctx.lineWidth = 6;
     ctx.beginPath();
@@ -68,13 +113,18 @@ export class ThreeRenderer implements GameRenderer {
     ctx.fillStyle = "#11161f";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    lines.forEach((l, i) => ctx.fillText(l, w / 2, pad + lineH * (i + 0.5)));
+    lines.forEach((l, i) => {
+      ctx.fillStyle = i === 0 ? "#17416c" : "#11161f";
+      ctx.fillText(l, w / 2, pad + lineH * (i + 0.5));
+    });
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: texture,
         depthTest: false,
+        depthWrite: false,
+        transparent: true,
         sizeAttenuation: false,
       }),
     );
@@ -234,6 +284,7 @@ export class ThreeRenderer implements GameRenderer {
         );
         this.players.set(player.id, avatar);
         this.scene.add(avatar.root);
+        if (player.cast?.monkeyBubble) this.addMonkey(player.id, player.name);
       }
       avatar.update(
         player,
@@ -278,7 +329,25 @@ export class ThreeRenderer implements GameRenderer {
       32 / this.zoom,
       this.anchor.z + 48 / this.zoom,
     );
-    this.camera.lookAt(this.anchor.x + 3, 0, this.anchor.z);
+    const look = new THREE.Vector3(this.anchor.x + 3, 0, this.anchor.z);
+    const focus = this.focus.update(current, dt);
+    const scorer = focus && this.players.get(focus.playerId);
+    if (scorer && focus) {
+      const player = current.players.find((p) => p.id === focus.playerId)!;
+      // Leave room for Monica's permanent video balloon, including a short MB label.
+      const headroom = player.cast?.monkeyBubble ? 1.8 : 1.1;
+      const distance = player.cast?.monkeyBubble ? 8 : 5.5;
+      const target = scorer.root.position
+        .clone()
+        .add(new THREE.Vector3(0, headroom, 0));
+      const facing = player.facing;
+      const close = target
+        .clone()
+        .add(new THREE.Vector3(facing.x * distance, 1.2, facing.y * distance));
+      this.camera.position.lerp(close, focus.weight);
+      look.lerp(target, focus.weight);
+    }
+    this.camera.lookAt(look);
     const controlled = this.players.get(current.controlledId);
     if (controlled) {
       this.marker.position
@@ -304,6 +373,17 @@ export class ThreeRenderer implements GameRenderer {
           .copy(avatar.root.position)
           .add(new THREE.Vector3(0, 2.9, 0));
     }
+    if (this.monkeySprite && this.monkeyPlayer) {
+      const label = this.bubbles.get(this.monkeyPlayer)?.sprite;
+      if (label) {
+        this.monkeySprite.position.copy(label.position);
+        // Position the clip below the heading, inside the permanent balloon.
+        this.monkeySprite.position.addScaledVector(
+          new THREE.Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion),
+          0.028 * this.camera.position.distanceTo(label.position),
+        );
+      }
+    }
     const ripple = [current.netRipple.left, current.netRipple.right];
     this.stadium.nets.forEach((net, i) => {
       net.scale.x = 1 + Math.sin(current.tick * 0.7) * ripple[i] * 0.1;
@@ -327,6 +407,15 @@ export class ThreeRenderer implements GameRenderer {
     if (this.disposed) return;
     this.disposed = true;
     this.observer.disconnect();
+    if (this.monkeyVideo) {
+      this.monkeyVideo.onerror = null;
+      this.monkeyVideo.pause();
+      this.monkeyVideo.removeAttribute("src");
+      this.monkeyVideo.load();
+    }
+    this.monkeySprite?.material.map?.dispose();
+    this.monkeySprite?.material.dispose();
+    if (this.monkeySprite) this.scene.remove(this.monkeySprite);
     this.canvas.removeEventListener("webglcontextlost", this.contextLost);
     this.players.forEach((p) => p.dispose());
     for (const id of [...this.bubbles.keys()]) this.dropBubble(id);

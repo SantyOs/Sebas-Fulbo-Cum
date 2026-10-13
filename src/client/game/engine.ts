@@ -121,6 +121,7 @@ export class PitchKickGame {
   }
   setPaused(paused: boolean) {
     this.paused = paused;
+    this.renderer.setPaused(paused);
     if (paused) birthdayAudio.stop();
     this.clock.reset();
     this.input.setPaused(paused);
@@ -143,7 +144,13 @@ export class PitchKickGame {
       this.options.onGoal?.(goal);
     }
     for (const line of this.castLines.consume(this.current)) {
-      if (line.text) this.renderer.say(line.playerId, line.text);
+      if (line.text)
+        this.renderer.say(
+          line.playerId,
+          line.text,
+          this.current.players.find((p) => p.id === line.playerId)?.name ??
+            "Jugador",
+        );
       if (line.sound === "call" && this.options.birthday)
         void birthdayAudio.playCall(false, this.options.birthday);
     }

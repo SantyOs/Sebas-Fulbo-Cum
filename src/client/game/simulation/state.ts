@@ -126,6 +126,7 @@ export class MatchState {
     takerIsGK: boolean;
     isThrowIn: boolean;
   } | null = null;
+  refusedPasses = new Set<string>();
   celebration = 0;
   celebrateTeam: Team | null = null;
   pendingKickoff: Team | null = null;

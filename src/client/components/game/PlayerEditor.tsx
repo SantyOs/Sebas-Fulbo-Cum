@@ -1,5 +1,6 @@
 import { PlayerEditorFields, tabs } from "./PlayerEditorFields";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { applyCast } from "../../game/customization/cast";
 import { TEAMS } from "../../game/teams";
 import {
   defaultPlayer,
@@ -13,15 +14,20 @@ import { birthdayAudio } from "../../game/customization/audio";
 const PlayerPreview = lazy(() => import("./PlayerPreview"));
 export default function PlayerEditor({
   profile,
+  homeTeamIndex,
+  awayTeamIndex,
   onSave,
   onClose,
 }: {
   profile: BirthdayProfile;
+  homeTeamIndex: number;
+  awayTeamIndex: number;
   onSave: (profile: BirthdayProfile) => void;
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState(() => structuredClone(profile)),
-    [teamIndex, setTeam] = useState(0),
+    [teamIndex, setTeam] = useState(homeTeamIndex),
+    [side, setSide] = useState<"home" | "away">("home"),
     [playerIndex, setPlayer] = useState(0),
     [tab, setTab] = useState<(typeof tabs)[number]>("Cara"),
     [notice, setNotice] = useState(""),
@@ -29,10 +35,14 @@ export default function PlayerEditor({
     [fullBody, setFullBody] = useState(false);
   const panel = useRef<HTMLDivElement>(null),
     file = useRef<HTMLInputElement>(null);
-  const team = TEAMS[teamIndex],
+  const castTeams = applyCast(TEAMS[teamIndex], TEAMS[teamIndex]);
+  const team = castTeams[side === "home" ? 0 : 1],
     player = team.players[playerIndex],
-    key = playerKey(team, player),
-    custom = draft.players[key] ?? defaultPlayer(team, player);
+    key = playerKey(team, player, side),
+    custom =
+      draft.players[key] ??
+      draft.players[playerKey(team, player)] ??
+      defaultPlayer(team, player);
   const update = (patch: Partial<PlayerCustomization>) =>
     setDraft((d) => ({
       ...d,
@@ -196,6 +206,21 @@ export default function PlayerEditor({
         </header>
         <div className="editor-selectors">
           <label>
+            Equipo
+            <select
+              value={side}
+              onChange={(e) => {
+                const nextSide = e.target.value as "home" | "away";
+                setSide(nextSide);
+                setTeam(nextSide === "home" ? homeTeamIndex : awayTeamIndex);
+                setPlayer(0);
+              }}
+            >
+              <option value="home">Mi equipo</option>
+              <option value="away">Equipo contrario</option>
+            </select>
+          </label>
+          <label>
             Selección
             <select
               value={teamIndex}
@@ -219,8 +244,15 @@ export default function PlayerEditor({
             >
               {team.players.map((p, i) => (
                 <option key={p.num} value={i}>
-                  {draft.players[playerKey(team, p)]?.name ?? p.name} · #
-                  {draft.players[playerKey(team, p)]?.num ?? p.num}
+                  {(
+                    draft.players[playerKey(team, p, side)] ??
+                    draft.players[playerKey(team, p)]
+                  )?.name ?? p.name}{" "}
+                  · #
+                  {(
+                    draft.players[playerKey(team, p, side)] ??
+                    draft.players[playerKey(team, p)]
+                  )?.num ?? p.num}
                 </option>
               ))}
             </select>

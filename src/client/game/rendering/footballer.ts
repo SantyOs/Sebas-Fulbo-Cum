@@ -1,3 +1,4 @@
+import { CELEBRATIONS } from "../customization/profile";
 import { sculptFace } from "../customization/face";
 import { PX_PER_M } from "../constants";
 import * as THREE from "three";
@@ -5,6 +6,7 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import type { MatchEvent, MatchSnapshot } from "../contracts";
 import type { TeamData } from "../teams/types";
+import { hairGeometry } from "./hair";
 import { sportClips } from "./sport-clips";
 
 type PlayerView = MatchSnapshot["players"][number];
@@ -157,6 +159,7 @@ export class Footballer {
   private diving = false;
   private kicking = false;
   private throwing = false;
+  private castSlot = 0;
   private celebrating = false;
   private celebrationTime = 0;
   private materials: THREE.Material[] = [];
@@ -220,18 +223,8 @@ export class Footballer {
       object.quaternion.premultiply(rotation);
       bone.add(object);
     };
-    const hairGeo =
-      p.custom?.hairStyle === "mohawk"
-        ? new THREE.BoxGeometry(0.05, 0.13, 0.18)
-        : new THREE.SphereGeometry(
-            0.095,
-            10,
-            6,
-            0,
-            Math.PI * 2,
-            0,
-            Math.PI * 0.57,
-          );
+    const style = p.custom?.hairStyle ?? "short";
+    const hairGeo = hairGeometry(style);
     this.geometries.push(hairGeo);
     const hairMat = new THREE.MeshStandardMaterial({
       color: p.hair,
@@ -239,20 +232,10 @@ export class Footballer {
     });
     this.materials.push(hairMat);
     const hair = new THREE.Mesh(hairGeo, hairMat);
-    const style = p.custom?.hairStyle ?? "short";
+    hair.name = "PlayerHair";
     hair.visible = style !== "bald";
-    hair.scale.set(
-      style === "curly" ? 1.13 : 1,
-      style === "long"
-        ? 1.6
-        : style === "curly"
-          ? 1.3
-          : style === "mohawk"
-            ? 1
-            : 0.65,
-      style === "long" ? 1.35 : 1.05,
-    );
-    attach("Head", hair, new THREE.Vector3(0, 1.746, -0.005));
+    hair.castShadow = true;
+    attach("Head", hair, new THREE.Vector3(0, 1.69, -0.01));
     if (p.custom?.beard) {
       const geo = new THREE.SphereGeometry(0.065, 10, 6);
       this.geometries.push(geo);
@@ -317,17 +300,28 @@ export class Footballer {
       const action = this.mixer.clipAction(clip);
       this.baseActions[clip.name] = action;
     }
-    for (const clip of sportClips()) {
+    for (const clip of sportClips(
+      assets.model.scene,
+      assets.locomotion.animations.find((c) => c.name === "Idle_Loop")!,
+    )) {
       const action = this.mixer.clipAction(clip);
       action.setLoop(THREE.LoopOnce, 1);
       this.sports[clip.name] = action;
     }
+    this.castSlot = Math.max(
+      0,
+      team.players.findIndex(
+        (q) => `${p.team}-${q.sourceId ?? q.num}` === p.id,
+      ),
+    );
     this.setBase("Idle_Loop");
   }
   private celebrationName(p: PlayerView) {
-    return !p.custom || p.custom.celebration.style === "classic"
-      ? "celebrate"
-      : `celebrate_${p.custom.celebration.style}`;
+    const style =
+      p.custom?.celebration.style ??
+      p.cast?.celebrationStyle ??
+      CELEBRATIONS[this.castSlot % CELEBRATIONS.length];
+    return style === "classic" ? "celebrate" : `celebrate_${style}`;
   }
   private setBase(name: string) {
     if (this.current === name) return;
@@ -367,7 +361,7 @@ export class Footballer {
     const speed = Math.hypot(p.vx, p.vy) / PX_PER_M;
     const backward = p.vx * p.facing.x + p.vy * p.facing.y < -10;
     this.setBase(
-      speed < 0.25
+      this.celebrationTime > 0 || speed < 0.25
         ? "Idle_Loop"
         : backward
           ? "Crouch_Fwd_Loop"
@@ -393,7 +387,8 @@ export class Footballer {
     for (const e of events) {
       if (e.id <= this.lastEvent) continue;
       this.lastEvent = e.id;
-      if (e.playerId === p.id && e.kind !== "restart") {
+      if (e.playerId === p.id && e.kind !== "restart" && e.kind !== "refusal") {
+        if (e.kind === "goal" && e.team && e.team !== p.team) continue;
         if (e.kind === "goal") this.celebrationTime = 3.6;
         kickEvent ||= e.kind === "pass" || e.kind === "shot";
         this.play(
@@ -442,7 +437,9 @@ export class Footballer {
     if (active) active.timeScale = celebration?.speed ?? 1;
     if (this.celebrationTime > 0) {
       this.celebrationTime = Math.max(0, this.celebrationTime - dt);
-      if (active && !active.isRunning()) this.play(this.celebrationName(p));
+      if (this.celebrationTime === 0) active?.fadeOut(0.15);
+      else if (active && !active.isRunning())
+        this.play(this.celebrationName(p));
     }
     this.mixer.update(dt);
     if (p.custom)
@@ -456,6 +453,7 @@ export class Footballer {
       : 0;
     this.body.rotation.z = 0;
     this.body.rotation.x = slide ? -0.8 : diveProgress * (p.diveDir ?? 1) * 1.3;
+    this.body.position.z = 0;
     this.body.position.y = slide ? -0.32 : diveProgress * 0.42;
     if (this.celebrationTime > 0) {
       const t = (3.6 - this.celebrationTime) * (celebration?.speed ?? 1),
@@ -463,7 +461,19 @@ export class Footballer {
       this.body.position.y +=
         Math.abs(Math.sin(t * 7)) * (celebration?.jump ?? 0.15) * fade;
       this.root.rotation.y += t * Math.PI * 2 * (celebration?.spin ?? 0) * fade;
-      if (celebration?.style === "dance")
+      const style = this.celebrationName(p);
+      if (style === "celebrate_slide") {
+        this.body.position.y = -0.48 * fade;
+        this.body.position.z = Math.min(t, 1) * 0.8 * fade;
+      } else this.body.position.z = 0;
+      if (style === "celebrate_siu") {
+        const leap = Math.sin(Math.min(1, t / 1.2) * Math.PI);
+        this.body.position.y += leap * 0.6 * fade;
+        this.root.rotation.y += Math.min(1, t / 1.2) * Math.PI * 2;
+      }
+      if (style === "celebrate_airplane")
+        this.body.rotation.z = Math.sin(t * 4) * 0.2 * fade;
+      if (style === "celebrate_dance")
         this.body.rotation.z = Math.sin(t * 10) * 0.18 * fade;
     }
     if (dive) this.root.rotation.y = 0;

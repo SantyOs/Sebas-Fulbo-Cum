@@ -1,6 +1,6 @@
 import { CONTROL_DIST, CONTROL_HEIGHT, FIELD_W, FIELD_H } from "../constants";
 import { keeperReach } from "./keepers";
-import { resolvePossession } from "./possession";
+import { resolvePossession, refusesPass, announceRefusal } from "./possession";
 import { sweepCircle } from "./sweep";
 import { BALL_DECAY, BOUNCE, GRAVITY } from "../constants";
 import { checkOutOfPlay } from "./rules";
@@ -29,6 +29,10 @@ export function updateBall(state: MatchState, dt: number) {
   let hit = false;
   if (state.ballFree <= 0 || state.lastKicker) {
     const speed = Math.hypot(start.vx, start.vy);
+    const refusals: {
+      player: (typeof state.homePlayers)[number];
+      t: number;
+    }[] = [];
     for (const p of [...state.homePlayers, ...state.awayPlayers]) {
       if (
         p === state.dispossessed ||
@@ -49,9 +53,15 @@ export function updateBall(state: MatchState, dt: number) {
           CONTROL_DIST * 2
       )
         continue;
+      if (refusesPass(state, p)) {
+        refusals.push({ player: p, t });
+        continue;
+      }
       contact = t;
       hit = true;
     }
+    for (const refusal of refusals)
+      if (refusal.t <= contact) announceRefusal(state, refusal.player);
   }
   if (hit || boundary < 1) {
     const t = Math.min(1, contact + 1e-7);

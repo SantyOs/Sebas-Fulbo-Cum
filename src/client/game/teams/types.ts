@@ -34,7 +34,7 @@ export interface Ratings {
  *  [PAC, SHO, PAS, DRI, DEF, PHY]. */
 export type RatingTuple = [number, number, number, number, number, number];
 
-export type SquadRole = 'GK' | 'DF' | 'MF' | 'ST';
+export type SquadRole = "GK" | "DF" | "MF" | "ST";
 
 export type FormationSlot = Vec & { role: SquadRole };
 
@@ -84,6 +84,9 @@ export function makeRatings(role: SquadRole, tuple?: RatingTuple): Ratings {
 
 /** Office-cast quirks layered over a roster player (see customization/cast.ts). */
 export interface CastTraits {
+  refusesPasses?: boolean;
+  monkeyBubble?: boolean;
+  celebrationStyle?: PlayerCustomization["celebration"]["style"];
   /** Speech-bubble lines shown, in rotation, when a teammate's pass reaches him. */
   phrases?: string[];
   /** Presentation sound on receiving a pass / scoring. */

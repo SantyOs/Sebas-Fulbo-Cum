@@ -1,4 +1,7 @@
-import type { BirthdayProfile } from "../game/customization/profile";
+import {
+  customizeTeams,
+  type BirthdayProfile,
+} from "../game/customization/profile";
 import { useEffect, useRef, useState } from "react";
 import type { PitchKickGame } from "../game/engine";
 import type { GraphicsQuality } from "../game/contracts";
@@ -51,7 +54,17 @@ export function useGame(options: {
       try {
         const { PitchKickGame } = await import("../game/engine");
         if (cancelled) return;
-        const [castHome, castAway] = applyCast(home, away);
+        const [baseHome, baseAway] = applyCast(home, away);
+        const [castHome] = customizeTeams(
+          [baseHome],
+          latest.current.birthday,
+          "home",
+        );
+        const [castAway] = customizeTeams(
+          [baseAway],
+          latest.current.birthday,
+          "away",
+        );
         const [h, a] = practice
           ? practiceTeams(castHome, castAway)
           : [castHome, castAway];

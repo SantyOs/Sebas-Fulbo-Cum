@@ -4,7 +4,12 @@ import { emptyInput } from "./contracts";
 import { handleGoals, checkOutOfPlay } from "./simulation/rules";
 import { keeperMayHandle } from "./simulation/keepers";
 import { TEAMS } from "./teams";
-import { FIELD_W, FIELD_H, MATCH_REAL_SECS } from "./constants";
+import {
+  FIELD_W,
+  FIELD_H,
+  MATCH_REAL_SECS,
+  CELEBRATION_SECS,
+} from "./constants";
 
 afterEach(() => vi.restoreAllMocks());
 function match(practice = false) {
@@ -39,6 +44,11 @@ describe("match rules before renderer migration", () => {
     handleGoals(g.state);
     expect(g.state.homeScore).toBe(1);
     for (let i = 0; i < 180; i++) g.step(1 / 60, emptyInput());
+    expect(g.state.celebration).toBeGreaterThan(0);
+    expect(g.state.homeScore).toBe(1);
+    expect(g.state.pendingKickoff).toBeNull();
+    for (let i = 180; i <= CELEBRATION_SECS * 60 + 1; i++)
+      g.step(1 / 60, emptyInput());
     expect(g.state.elapsed).toBe(0);
     expect(g.state.ball.x).toBeLessThan(FIELD_W);
   });

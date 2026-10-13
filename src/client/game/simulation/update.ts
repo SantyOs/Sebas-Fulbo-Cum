@@ -15,6 +15,7 @@ import {
   awardRestart,
   handleGoals,
   resetKickoff,
+  practiceResetBall,
   setMessage,
   updateCelebration,
 } from "./rules";
@@ -58,6 +59,10 @@ export function update(state: MatchState, dt: number) {
 
     state.justPressed = [];
     state.justReleased = [];
+    if (state.celebration <= 0 && state.practice) {
+      practiceResetBall(state);
+      state.scorer = null;
+    }
     if (state.celebration <= 0 && state.pendingKickoff) {
       resetKickoff(state, state.pendingKickoff);
     }

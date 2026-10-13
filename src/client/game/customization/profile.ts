@@ -2,7 +2,19 @@
 import { makeRatings } from "../teams/types";
 import { HAIR_COLORS, SKIN_TONES } from "../constants";
 export const HAIRSTYLES = ["short", "curly", "mohawk", "long", "bald"] as const;
-export const CELEBRATIONS = ["classic", "dance", "dab", "heart"] as const;
+export const CELEBRATIONS = [
+  "classic",
+  "dance",
+  "dab",
+  "heart",
+  "airplane",
+  "slide",
+  "archer",
+  "salute",
+  "shush",
+  "fist",
+  "siu",
+] as const;
 export const SOUNDS = ["fanfare", "party", "stadium", "none"] as const;
 export interface FaceShape {
   jaw: number;
@@ -51,6 +63,7 @@ export interface PlayerCustomization {
     sound: string;
     volume: number;
     confetti: boolean;
+    closeup?: boolean;
   };
 }
 export interface BirthdayProfile {
@@ -71,8 +84,12 @@ export const defaultProfile = (): BirthdayProfile => ({
   players: {},
   sounds: {},
 });
-export const playerKey = (team: TeamData, player: SquadPlayer) =>
-  `${team.abbr}:${player.sourceId ?? player.num}`;
+export type CastSide = "home" | "away";
+export const playerKey = (
+  team: TeamData,
+  player: SquadPlayer,
+  side?: CastSide,
+) => `${side ? side + ":" : ""}${team.abbr}:${player.sourceId ?? player.num}`;
 export function defaultPlayer(
   team: TeamData,
   p: SquadPlayer,
@@ -94,13 +111,16 @@ export function defaultPlayer(
     wristband: "#ffffff",
     ratings: { ...p.ratings },
     celebration: {
-      style: "classic",
+      style:
+        p.cast?.celebrationStyle ??
+        CELEBRATIONS[Math.max(0, i) % CELEBRATIONS.length],
       speed: 1,
       spin: 0,
       jump: 0.15,
       sound: "fanfare",
       volume: 0.8,
       confetti: true,
+      closeup: true,
     },
   };
 }
@@ -149,66 +169,76 @@ export function normalizeProfile(
     };
   }
   for (const team of teams) {
-    const used = new Set<number>();
-    for (const p of team.players) {
-      const key = playerKey(team, p),
-        raw = players[key];
-      if (!raw) continue;
-      const d = defaultPlayer(team, p),
-        v = object(raw),
-        c = object(v.celebration),
-        r = object(v.ratings),
-        f = object(v.face);
-      const saved: PlayerCustomization = {
-        ...d,
-        name: text(v.name, 24, d.name).trim() || d.name,
-        num: Math.round(number(v.num, 1, 99, d.num)),
-        skin: color(v.skin, d.skin),
-        hairColor: color(v.hairColor, d.hairColor),
-        eyeColor: color(v.eyeColor, d.eyeColor),
-        boots: color(v.boots, d.boots),
-        wristband: color(v.wristband, d.wristband),
-        hairStyle: HAIRSTYLES.includes(v.hairStyle as never)
-          ? (v.hairStyle as PlayerCustomization["hairStyle"])
-          : d.hairStyle,
-        beard: v.beard === true,
-        height: number(v.height, 1.55, 2.1, d.height),
-        build: number(v.build, 0.75, 1.3, d.build),
-        headSize: number(v.headSize, 0.85, 1.15, 1),
-        ratings: { ...d.ratings },
-        celebration: {
-          style: CELEBRATIONS.includes(c.style as never)
-            ? (c.style as PlayerCustomization["celebration"]["style"])
-            : "classic",
-          speed: number(c.speed, 0.6, 1.8, 1),
-          spin: number(c.spin, 0, 1, 0),
-          jump: number(c.jump, 0, 0.6, 0.15),
-          sound:
-            typeof c.sound === "string" &&
-            (SOUNDS.includes(c.sound as never) || result.sounds[c.sound])
-              ? c.sound
-              : "fanfare",
-          volume: number(c.volume, 0, 1, 0.8),
-          confetti: c.confetti !== false,
-        },
-      };
-      saved.face = defaultFace();
-      for (const feature of Object.keys(saved.face) as (keyof FaceShape)[])
-        saved.face[feature] = number(f[feature], 0.65, 1.35, 1);
-      for (const attr of ["pac", "sho", "pas", "dri", "def", "phy"] as const)
-        saved.ratings[attr] = Math.round(
-          number(r[attr], 1, 99, d.ratings[attr]),
-        );
-      // Reserve untouched squad numbers too; never silently create duplicate shirts.
-      const reserved = team.players
-        .filter((other) => other !== p && !players[playerKey(team, other)])
-        .map((other) => other.num);
-      if (used.has(saved.num) || reserved.includes(saved.num))
-        saved.num = Array.from({ length: 99 }, (_, i) => i + 1).find(
-          (n) => !used.has(n) && !reserved.includes(n),
-        )!;
-      used.add(saved.num);
-      result.players[key] = saved;
+    for (const side of [undefined, "home", "away"] as const) {
+      const used = new Set<number>();
+      for (const p of team.players) {
+        const key = playerKey(team, p, side),
+          raw = players[key];
+        if (!raw) continue;
+        const d = defaultPlayer(team, p),
+          v = object(raw),
+          c = object(v.celebration),
+          r = object(v.ratings),
+          f = object(v.face);
+        const saved: PlayerCustomization = {
+          ...d,
+          name: text(v.name, 40, d.name).trim() || d.name,
+          num: Math.round(number(v.num, 1, 99, d.num)),
+          skin: color(v.skin, d.skin),
+          hairColor: color(v.hairColor, d.hairColor),
+          eyeColor: color(v.eyeColor, d.eyeColor),
+          boots: color(v.boots, d.boots),
+          wristband: color(v.wristband, d.wristband),
+          hairStyle: HAIRSTYLES.includes(v.hairStyle as never)
+            ? (v.hairStyle as PlayerCustomization["hairStyle"])
+            : d.hairStyle,
+          beard: v.beard === true,
+          height: number(v.height, 1.55, 2.1, d.height),
+          build: number(v.build, 0.75, 1.3, d.build),
+          headSize: number(v.headSize, 0.85, 1.15, 1),
+          ratings: { ...d.ratings },
+          celebration: {
+            style: CELEBRATIONS.includes(c.style as never)
+              ? (c.style as PlayerCustomization["celebration"]["style"])
+              : "classic",
+            speed: number(c.speed, 0.6, 1.8, 1),
+            spin: number(c.spin, 0, 1, 0),
+            jump: number(c.jump, 0, 0.6, 0.15),
+            sound:
+              typeof c.sound === "string" &&
+              (SOUNDS.includes(c.sound as never) || result.sounds[c.sound])
+                ? c.sound
+                : "fanfare",
+            volume: number(c.volume, 0, 1, 0.8),
+            confetti: c.confetti !== false,
+            closeup: c.closeup !== false,
+          },
+        };
+        saved.face = defaultFace();
+        for (const feature of Object.keys(saved.face) as (keyof FaceShape)[])
+          saved.face[feature] = number(f[feature], 0.65, 1.35, 1);
+        for (const attr of ["pac", "sho", "pas", "dri", "def", "phy"] as const)
+          saved.ratings[attr] = Math.round(
+            number(r[attr], 1, 99, d.ratings[attr]),
+          );
+        // Reserve untouched squad numbers too; never silently create duplicate shirts.
+        const reserved = team.players
+          .filter(
+            (other) => other !== p && !players[playerKey(team, other, side)],
+          )
+          .map(
+            (other) =>
+              (side
+                ? result.players[playerKey(team, other)]?.num
+                : undefined) ?? other.num,
+          );
+        if (used.has(saved.num) || reserved.includes(saved.num))
+          saved.num = Array.from({ length: 99 }, (_, i) => i + 1).find(
+            (n) => !used.has(n) && !reserved.includes(n),
+          )!;
+        used.add(saved.num);
+        result.players[key] = saved;
+      }
     }
   }
   return result;
@@ -216,11 +246,14 @@ export function normalizeProfile(
 export function customizeTeams(
   teams: readonly TeamData[],
   profile: BirthdayProfile,
+  side?: CastSide,
 ): TeamData[] {
   return teams.map((team) => ({
     ...team,
     players: team.players.map((p) => {
-      const custom = profile.players[playerKey(team, p)];
+      const custom =
+        profile.players[playerKey(team, p, side)] ??
+        profile.players[playerKey(team, p)];
       if (!custom) return p;
       const r = custom.ratings;
       return {

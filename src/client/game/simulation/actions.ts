@@ -308,7 +308,12 @@ export function updateControlled(state: MatchState, dt: number) {
     // direction that runs them away/ahead and the ball can't catch them —
     // override toward the meeting point so they don't miss it. With no arrow
     // held, the receiver fully takes over and collects the ball.
-    if (incoming && p === state.passReceiver && state.receptionTime > 0) {
+    if (
+      incoming &&
+      !p.cast?.refusesPasses &&
+      p === state.passReceiver &&
+      state.receptionTime > 0
+    ) {
       // FIFA auto-receive: instead of asking "will the user's current run
       // happen to intercept the ball?" (which oscillates — the moment we
       // nudge toward the ball the run looks fine again, so the receiver

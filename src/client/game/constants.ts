@@ -103,7 +103,7 @@ export const SLIDE_LUNGE_SPEED = 330;
 /** Carrying the ball is slower than running freely — a real dribble penalty.
  *  Applied to the carrier's top speed so a free defender can run you down.
  *  0.90 ≈ a real high-speed dribble keeps ~90% of free-sprint pace. */
-export const DRIBBLE_MULT = 0.90;
+export const DRIBBLE_MULT = 0.9;
 export const CONTROL_DIST = PLAYER_R + BALL_R + 16; // ball "at feet" reach ≈ 1.4 m
 /** Ball rolling friction (exponential decay per second). A kick at power v
  *  rolls v/BALL_DECAY px total — pass powers MUST account for this. */
@@ -137,5 +137,8 @@ export const DRIBBLE_ACCEL = 4.6;
 export const TURN_RATE = 10;
 
 // ---- Cosmetic palettes ----------------------------------------------------
-export const HAIR_COLORS = ['#2b2118', '#0e0c0a', '#5a3b1e', '#857058'];
-export const SKIN_TONES = ['#e0ac7e', '#c98c5e', '#8d5a3b', '#f0c49a'];
+export const HAIR_COLORS = ["#2b2118", "#0e0c0a", "#5a3b1e", "#857058"];
+export const SKIN_TONES = ["#e0ac7e", "#c98c5e", "#8d5a3b", "#f0c49a"];
+
+/** Active simulation seconds reserved for a goal cinematic. */
+export const CELEBRATION_SECS = 4;

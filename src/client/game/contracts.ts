@@ -26,6 +26,7 @@ export interface BallState {
 export type MatchEventKind =
   | "pass"
   | "shot"
+  | "refusal"
   | "contact"
   | "save"
   | "goal"

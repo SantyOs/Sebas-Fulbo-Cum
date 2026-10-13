@@ -40,7 +40,13 @@ describe("local redistributable 3D assets", () => {
       error = vi.spyOn(console, "error");
     const instance = clone(model.scene),
       mixer = new THREE.AnimationMixer(instance);
-    for (const clip of [...library.animations, ...sportClips()]) {
+    for (const clip of [
+      ...library.animations,
+      ...sportClips(
+        model.scene,
+        library.animations.find((c) => c.name === "Idle_Loop")!,
+      ),
+    ]) {
       for (const track of clip.tracks) {
         const target = THREE.PropertyBinding.parseTrackName(
           track.name,

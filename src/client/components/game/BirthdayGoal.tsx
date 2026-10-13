@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 export function BirthdayGoal({
   goal,
   dedication,
@@ -9,10 +9,18 @@ export function BirthdayGoal({
   paused: boolean;
 }) {
   const [visible, setVisible] = useState(true);
+  const remaining = useRef(4000);
   useEffect(() => {
     if (paused || !visible) return;
-    const timer = setTimeout(() => setVisible(false), 4000);
-    return () => clearTimeout(timer);
+    const started = performance.now();
+    const timer = setTimeout(() => setVisible(false), remaining.current);
+    return () => {
+      clearTimeout(timer);
+      remaining.current = Math.max(
+        0,
+        remaining.current - (performance.now() - started),
+      );
+    };
   }, [paused, visible]);
   if (!visible) return null;
   return (

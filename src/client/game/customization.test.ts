@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { TEAMS } from "./teams";
 import {
   defaultFace,
+  CELEBRATIONS,
   defaultPlayer,
   defaultProfile,
   normalizeProfile,
@@ -182,14 +183,32 @@ describe("face geometry", () => {
       original,
     );
     const warnings = vi.spyOn(console, "warn");
-    avatar.update(
-      view,
-      view,
-      1,
-      1 / 60,
-      [{ id: 1, tick: 1, time: 1, kind: "goal", playerId: view.id }],
-      false,
-    );
+    const location = { x: view.x, y: view.y };
+    for (const [index, style] of CELEBRATIONS.entries()) {
+      c.celebration.style = style;
+      for (let frame = 0; frame < 240; frame++) {
+        avatar.update(
+          view,
+          view,
+          1,
+          1 / 60,
+          [
+            {
+              id: index + 1,
+              tick: 1,
+              time: 1,
+              kind: "goal",
+              playerId: view.id,
+            },
+          ],
+          false,
+        );
+        expect(avatar.root.position.toArray().every(Number.isFinite)).toBe(
+          true,
+        );
+      }
+      expect({ x: view.x, y: view.y }).toEqual(location);
+    }
     expect(warnings).not.toHaveBeenCalled();
     warnings.mockRestore();
     avatar.dispose();
