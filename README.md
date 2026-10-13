@@ -56,6 +56,10 @@ El renderer 2D se conserva temporalmente como referencia de migración; no se im
 
 ## Estado de la entrega
 
+El despliegue automático desde `master` está preparado con GitHub Actions y SSH
+para un servidor Linux con Nginx. Falta configurar el destino y sus secretos para
+activarlo: [guía de despliegue](docs/despliegue.md).
+
 La compilación y las pruebas automatizadas están verificadas. La apariencia final, un partido jugado de principio a fin, diez reinicios WebGL y el objetivo de rendimiento en la RTX 3050 Laptop **siguen pendientes de comprobación real en navegador**. No hay un navegador conectado al entorno de implementación.
 
 Ajustes incluye medición y exportación JSON: 10 segundos de calentamiento, 60 de juego activo, FPS, p95, resolución interna y GPU informada por WebGL. Calidad alta renderiza a 1920×1080 con composición 16:9; media a 1280×720. Las pruebas de simulación no demuestran rendimiento gráfico.

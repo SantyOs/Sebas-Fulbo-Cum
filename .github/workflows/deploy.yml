@@ -1,0 +1,45 @@
+name: Validate and deploy
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Check deployment scripts
+        run: bash -n scripts/deploy.sh scripts/activate-release.sh
+      - name: Deploy production
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && vars.DEPLOY_ENABLED == 'true'
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: bash scripts/deploy.sh
+      - name: Deployment not configured
+        if: github.ref == 'refs/heads/master' && vars.DEPLOY_ENABLED != 'true'
+        run: echo 'Build validated. Configure the server using docs/despliegue.md to enable deployment.' >> "$GITHUB_STEP_SUMMARY"
