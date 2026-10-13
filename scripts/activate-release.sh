@@ -3,7 +3,8 @@
 set -euo pipefail
 commit=${1:?Missing commit ID}
 [[ "$commit" =~ ^[a-f0-9]{40}$ ]]
-root=/srv/sebas-fulbo
+root=${DEPLOY_ROOT:?Missing server deployment directory}
+[[ "$root" == /* && "$root" != / ]]
 archive="$root/incoming/$commit.tar.gz"
 test -s "$archive"
 mkdir -p "$root/releases"

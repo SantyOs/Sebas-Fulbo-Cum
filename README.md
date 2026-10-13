@@ -56,8 +56,8 @@ El renderer 2D se conserva temporalmente como referencia de migración; no se im
 
 ## Estado de la entrega
 
-El despliegue desde `master` usa GitHub Actions y un runner dedicado en Ubuntu con
-Docker y Nginx. Acceso por Tailscale: `http://100.116.191.99:8086`.
+El despliegue desde `master` usa GitHub Actions y un runner dedicado. La
+configuración y las direcciones del servidor se mantienen fuera del repositorio.
 Consulta la [guía de despliegue](docs/despliegue.md).
 
 La compilación y las pruebas automatizadas están verificadas. La apariencia final, un partido jugado de principio a fin, diez reinicios WebGL y el objetivo de rendimiento en la RTX 3050 Laptop **siguen pendientes de comprobación real en navegador**. No hay un navegador conectado al entorno de implementación.

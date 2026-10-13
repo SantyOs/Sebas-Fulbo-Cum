@@ -30,21 +30,12 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Check deployment scripts
-        run: bash -n scripts/deploy.sh scripts/activate-release.sh
+        run: bash -n scripts/activate-release.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: production-build
           path: dist/
           retention-days: 7
-      - name: Deploy production
-        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && vars.DEPLOY_ENABLED == 'true' && vars.DEPLOY_TRANSPORT == 'ssh'
-        env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
-          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-        run: bash scripts/deploy.sh
       - name: Deployment not configured
         if: github.ref == 'refs/heads/master' && vars.DEPLOY_ENABLED != 'true'
         run: echo 'Build validated. Configure the server using docs/despliegue.md to enable deployment.' >> "$GITHUB_STEP_SUMMARY"
@@ -64,11 +55,11 @@ jobs:
           path: dist
       - name: Activate local release
         shell: bash
-        env:
-          HEALTHCHECK_URL: http://web/version.json
         run: |
           set -euo pipefail
+          : "${DEPLOY_ROOT:?Configure deployment directory on the runner}"
+          : "${HEALTHCHECK_URL:?Configure HTTP verification on the runner}"
           printf '{"commit":"%s"}\n' "$GITHUB_SHA" > dist/version.json
-          mkdir -p /srv/sebas-fulbo/incoming
-          tar -czf "/srv/sebas-fulbo/incoming/$GITHUB_SHA.tar.gz" -C dist .
+          mkdir -p "$DEPLOY_ROOT/incoming"
+          tar -czf "$DEPLOY_ROOT/incoming/$GITHUB_SHA.tar.gz" -C dist .
           bash scripts/activate-release.sh "$GITHUB_SHA"
