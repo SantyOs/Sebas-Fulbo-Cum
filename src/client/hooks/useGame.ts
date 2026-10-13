@@ -2,6 +2,7 @@ import {
   customizeTeams,
   type BirthdayProfile,
 } from "../game/customization/profile";
+import type { GoalPresentation } from "../game/customization/goals";
 import { useEffect, useRef, useState } from "react";
 import type { PitchKickGame } from "../game/engine";
 import type { GraphicsQuality } from "../game/contracts";
@@ -23,7 +24,7 @@ const initialHud: HudState = {
 };
 export function useGame(options: {
   birthday: BirthdayProfile;
-  onGoal: (goal: { id: number; name: string; confetti: boolean }) => void;
+  onGoal: (goal: GoalPresentation) => void;
   active: boolean;
   gameKey: number;
   home: TeamData;

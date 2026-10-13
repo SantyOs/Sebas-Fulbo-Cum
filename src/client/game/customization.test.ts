@@ -314,6 +314,7 @@ it("delivers one personalized celebration per goal despite repeated snapshots", 
       sound: "stadium",
       volume: 0.8,
       call: false,
+      team: "home",
     },
   ]);
   expect(cursor.consume(withGoal)).toEqual([]);

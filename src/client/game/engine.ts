@@ -1,5 +1,5 @@
 import { CastLineCursor } from "./customization/cast";
-import { GoalEventCursor } from "./customization/goals";
+import { GoalEventCursor, type GoalPresentation } from "./customization/goals";
 import { birthdayAudio } from "./customization/audio";
 import type { BirthdayProfile } from "./customization/profile";
 import type { GraphicsQuality, MatchSnapshot } from "./contracts";
@@ -17,7 +17,7 @@ export type { HudState } from "./types";
 export { CANVAS_W, CANVAS_H } from "./constants";
 export interface GameOptions {
   birthday?: BirthdayProfile;
-  onGoal?: (goal: { id: number; name: string; confetti: boolean }) => void;
+  onGoal?: (goal: GoalPresentation) => void;
   practice?: boolean;
   quality?: GraphicsQuality;
   seed?: number;
