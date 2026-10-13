@@ -174,6 +174,9 @@ export class PitchKickGame {
     this.last = now;
     try {
       this.input.poll();
+      this.simulation.state.difficulty = this.input.usingPad
+        ? "media"
+        : "muyAlta";
       if (!this.paused) {
         const alpha = this.clock.advance(elapsed, (dt) => {
           this.previous = this.current;

@@ -28,6 +28,9 @@ export class BrowserInput {
     document.removeEventListener("visibilitychange", this.visibility);
     this.clear();
   }
+  get usingPad() {
+    return this.activePad !== null;
+  }
   setPaused(paused: boolean) {
     this.paused = paused;
     this.clear();
@@ -82,10 +85,10 @@ export class BrowserInput {
       );
     if (pad) this.activePad = pad.index;
     const status = pad
-      ? "Mando conectado"
+      ? "Mando conectado · Dificultad media"
       : pads.some((p) => p.mapping !== "standard")
-        ? "Mando no estándar. Puedes jugar con teclado."
-        : "Teclado · pulsa un botón para conectar el mando";
+        ? "Mando no estándar. Puedes jugar con teclado · Dificultad muy alta"
+        : "Teclado · Dificultad muy alta · pulsa un botón para conectar el mando";
     if (status !== this.status) {
       this.status = status;
       this.onStatus(status);

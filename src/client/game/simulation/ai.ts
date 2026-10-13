@@ -3,6 +3,7 @@ import {
   AWAY_CHASE_SPEED,
   AWAY_FORMATION_SPEED,
   CONTROL_DIST,
+  DIFFICULTY,
   FIELD_H,
   FIELD_W,
   goalBottom,
@@ -556,6 +557,7 @@ export function updateAwayTeam(state: MatchState, dt: number) {
     state.owner && state.owner.team === "away" ? state.owner : null;
   // The keeper isn't a generic chaser — his own keeperPlan decides when to
   // hold the line vs. rush out (and keeps him inside the box).
+  const level = DIFFICULTY[state.difficulty];
   const outfield = state.awayPlayers.filter((p) => !p.isGK);
   const chaser =
     carrier ?? nearestTo(state, outfield, state.ball) ?? state.awayPlayers[1];
@@ -585,13 +587,13 @@ export function updateAwayTeam(state: MatchState, dt: number) {
       // contact and wins the jostle, instead of hovering a few px behind. A
       // loose ball is chased with slight anticipation.
       if (userCarrier) {
-        driveToward(state, p, userCarrier, AWAY_CHASE_SPEED, dt);
+        driveToward(state, p, userCarrier, AWAY_CHASE_SPEED * level.speed, dt);
       } else {
         const t = {
           x: clamp(state.ball.x + state.ball.vx * 0.18, p.r, FIELD_W - p.r),
           y: clamp(state.ball.y + state.ball.vy * 0.18, p.r, FIELD_H - p.r),
         };
-        moveToward(state, p, t, AWAY_CHASE_SPEED, dt);
+        moveToward(state, p, t, AWAY_CHASE_SPEED * level.speed, dt);
       }
     } else if (p === container && userCarrier) {
       // Jockey into the containing spot (moveToward eases in so he holds the
@@ -600,11 +602,11 @@ export function updateAwayTeam(state: MatchState, dt: number) {
         state,
         p,
         containTarget(state, p, userCarrier),
-        PRESS_SPEED,
+        PRESS_SPEED * level.speed,
         dt,
       );
     } else {
-      const plan = offBallPlan(state, p, AWAY_FORMATION_SPEED);
+      const plan = offBallPlan(state, p, AWAY_FORMATION_SPEED * level.speed);
       const sp =
         dist(p, plan.pos) > 240 ? Math.max(plan.speed, RUN_SPEED) : plan.speed;
       moveToward(state, p, plan.pos, sp, dt);
@@ -619,7 +621,7 @@ export function updateAwayTeam(state: MatchState, dt: number) {
     for (const p of state.awayPlayers) {
       if (p.isGK) continue;
       if (pokeTackle(state, p, CONTROL_DIST + 10)) {
-        state.cpuTackleCd = 0.55;
+        state.cpuTackleCd = level.tackleCd;
         break;
       }
     }
@@ -642,6 +644,7 @@ export function updateAwayCarrier(
   p: PlayerEntity,
   dt: number,
 ) {
+  const level = DIFFICULTY[state.difficulty];
   // Taking a throw-in: stand and throw it back into play by hand (after a
   // short beat so the hold reads on screen), to the most open teammate.
   if (p === state.throwInTaker) {
@@ -662,7 +665,7 @@ export function updateAwayCarrier(
     if (state.gkHoldTimer < 1.1) return;
     if (state.cpuDecision > 0) return;
     state.gkHoldTimer = 0;
-    state.cpuDecision = 0.5;
+    state.cpuDecision = level.decision;
     if (state.practice) practiceKeeperClear(state, p);
     else keeperDistribute(state, p);
     return;
@@ -670,10 +673,10 @@ export function updateAwayCarrier(
 
   // Dribble toward the player's (left) goal.
   const t = { x: 36, y: FIELD_H / 2 + (p.y - FIELD_H / 2) * 0.35 };
-  moveToward(state, p, t, AWAY_CARRY_SPEED, dt);
+  moveToward(state, p, t, AWAY_CARRY_SPEED * level.speed, dt);
 
   if (state.cpuDecision > 0) return;
-  state.cpuDecision = 0.5;
+  state.cpuDecision = level.decision;
 
   const pressure = nearestOpponentDist(state, p);
 
@@ -692,7 +695,7 @@ export function updateAwayCarrier(
       // so the CPU's strike is a driven, mostly-rising effort (loft solved
       // from the new realistic GRAVITY) rather than a fixed up-and-over lob.
       Math.sqrt(2 * GRAVITY * M(0.7)),
-      0.05 * shotSpreadMul(p.ratings),
+      0.05 * shotSpreadMul(p.ratings) * level.aim,
     );
     return;
   }
@@ -720,7 +723,7 @@ export function updateAwayCarrier(
         passPower(state, d, 260, 780) * passPowerMul(p.ratings),
         p,
         0,
-        0.03 * passSpreadMul(p.ratings),
+        0.03 * passSpreadMul(p.ratings) * level.aim,
       );
     }
   }

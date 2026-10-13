@@ -123,8 +123,10 @@ describe("PC input", () => {
       input = new BrowserInput(DEFAULT_BINDINGS, pause, status);
     input.poll();
     expect(input.actions.consume().held.has("shot")).toBe(true);
+    expect(input.usingPad).toBe(true);
     pads = [];
     input.poll();
+    expect(input.usingPad).toBe(false);
     expect(pause).toHaveBeenCalledWith("controller");
     expect(input.actions.consume().held.size).toBe(0);
     pads = [{ ...pad(), mapping: "" }];
@@ -133,6 +135,20 @@ describe("PC input", () => {
   });
 });
 describe("fixed simulation and roster", () => {
+  it("CPU closes the user down faster on harder difficulty", () => {
+    const gap = (difficulty: "media" | "muyAlta") => {
+      const sim = new MatchSimulation(TEAMS[0], TEAMS[1], { seed: 7 });
+      sim.state.difficulty = difficulty;
+      for (let i = 0; i < 70; i++) sim.step(1 / 60, emptyInput());
+      const owner = sim.state.owner ?? sim.state.controlled;
+      return Math.min(
+        ...sim.state.awayPlayers.map((p) =>
+          Math.hypot(p.x - owner.x, p.y - owner.y),
+        ),
+      );
+    };
+    expect(gap("muyAlta")).toBeLessThan(gap("media"));
+  });
   it("produces identical full snapshots at 30, 60 and 120 rendering FPS", () => {
     const run = (fps: number) => {
       const sim = new MatchSimulation(TEAMS[0], TEAMS[1], { seed: 94 }),

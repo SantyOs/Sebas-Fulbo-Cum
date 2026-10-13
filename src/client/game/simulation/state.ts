@@ -1,10 +1,11 @@
-import { BALL_R } from "../constants";
+import { BALL_R, type Difficulty } from "../constants";
 import type { PlayerEntity, Team, Vec } from "../types";
 import type { TeamData } from "../teams/types";
 import type { MatchEvent } from "../contracts";
 import { makePlayer } from "./factory";
 
 export class MatchState {
+  difficulty: Difficulty = "media";
   keys = new Set<string>();
   justPressed: string[] = [];
   justReleased: string[] = [];

@@ -73,6 +73,20 @@ export const AWAY_CHASE_SPEED = 204;
 /** The CPU carrier dribbles at the (penalised) carrying pace. */
 export const AWAY_CARRY_SPEED = 176;
 export const AWAY_FORMATION_SPEED = 120;
+export type Difficulty = "muyBaja" | "baja" | "media" | "alta" | "muyAlta";
+/** CPU tuning per level. `media` is the original behaviour: speed scales the
+ *  CPU run speeds, tackleCd/decision are seconds between CPU tackles/choices,
+ *  aim scales CPU shot/pass spread. */
+export const DIFFICULTY: Record<
+  Difficulty,
+  { speed: number; tackleCd: number; decision: number; aim: number }
+> = {
+  muyBaja: { speed: 0.82, tackleCd: 1.2, decision: 0.9, aim: 2 },
+  baja: { speed: 0.91, tackleCd: 0.85, decision: 0.7, aim: 1.5 },
+  media: { speed: 1, tackleCd: 0.55, decision: 0.5, aim: 1 },
+  alta: { speed: 1.05, tackleCd: 0.42, decision: 0.38, aim: 0.75 },
+  muyAlta: { speed: 1.1, tackleCd: 0.3, decision: 0.28, aim: 0.5 },
+};
 /** Off-ball forward runs in behind (both teams). */
 export const RUN_SPEED = 178;
 /** Closing down the carrier / tracking a marked attacker — a real sprint.
