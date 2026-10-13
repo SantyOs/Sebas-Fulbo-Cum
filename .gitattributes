@@ -1,2 +1,4 @@
 *.sh text eol=lf
 *.yml text eol=lf
+# Preserve upstream license bytes: their hashes are included in the asset manifest.
+src/client/public/assets/players/*-LICENSE.txt -text
