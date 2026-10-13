@@ -4,13 +4,13 @@ El juego mantiene World Cup 2026 como nombre y muestra la dedicatoria para Sebas
 
 ## Editar jugadores y caras
 
-En el menú principal, pulsa **Personalizar regalo**. Elige una selección y uno de sus once jugadores. Las plantillas originales se mantienen intactas; el regalo guarda modificaciones por selección y jugador original.
+En el menú principal, pulsa **Personalizar regalo**. Elige **Mi equipo** o **Equipo contrario**, una selección y uno de sus once personajes de oficina. Al cambiar de lado se abre la selección local o rival elegida para el partido. Las plantillas originales se mantienen intactas; el regalo guarda modificaciones por lado, selección y dorsal original. Los perfiles anteriores sin lado siguen siendo compatibles como configuración base.
 
 - **Identidad:** nombre/apodo y dorsal. Al guardar se resuelven dorsales duplicados; cambiar el número no cambia el ID interno del jugador.
 - **Cara:** mandíbula, mentón, ancho/proyección de nariz, separación/apertura de ojos, boca, labios, orejas, pómulos, tamaño de cabeza y color de ojos. Los diez controles de forma deforman vértices de la malla del modelo; cada jugador editado tiene su copia. No se aplica una fotografía ni reconstrucción facial automática.
 - **Apariencia:** cinco peinados, color de pelo/barba, barba, piel, botas, muñequeras, estatura y complexión. Las colisiones conservan su tamaño arcade; las proporciones son visuales.
 - **Atributos:** velocidad, tiro, pase, regate, defensa y físico, de 1 a 99. Sí afectan a la simulación; el OVR se recalcula por rol.
-- **Celebración:** brazos arriba, baile, dab o corazón, con velocidad, giros, salto y confeti configurables por jugador.
+- **Celebración:** brazos arriba, baile, dab, corazón, avioncito, de rodillas, arquero, saludo, silencio, puño al cielo o salto y giro. Cada personaje tiene un festejo predeterminado según su posición del reparto; puedes cambiarlo, ajustar velocidad, giros, salto y confeti, y activar/desactivar **Primer plano al marcar**.
 - **Audio:** fanfarria, fiesta, ovación, silencio o grabación propia. Usa Probar festejo y sonido para ensayar antes de guardar.
 
 La vista 3D permite frente, perfil, espalda y giro continuo; alterna rostro/cuerpo completo. Los cambios de geometría se agrupan durante 100 ms para evitar reconstruir el modelo por cada pequeño movimiento del deslizador. Pulsa **Guardar cambios** y empieza un partido o práctica para verlos en el campo. Cerrar sin guardar descarta el borrador.
@@ -45,7 +45,16 @@ Las pruebas verifican saneamiento, exportación/importación, persistencia, IDs/
 
 `game/customization/cast.ts` asigna nombres y rasgos por lado y posición de la formación, sea cual sea la selección: local = equipo del jugador, visitante = rivales. Las plantillas originales y los IDs de simulación no cambian.
 
-- Al recibir un pase de un compañero, el jugador muestra su frase en un globo sobre la cabeza (las de Patricia rotan en orden).
+- Al recibir un pase de un compañero, el jugador muestra su nombre y frase en un globo con fondo blanco al 78 % de opacidad (las de Patricia rotan en orden). Los nombres editados se conservan en la partida.
+- Maria Alejandra Osorio, la contable, deja pasar los pases de sus compañeros y dice «No sé, nunca me había pasado, primera vez que me pasa». Se anuncia una sola vez por pase, incluso si atraviesa su zona entre dos pasos de simulación. No cuenta como toque ni cambia la procedencia del balón; puede interceptar balones rivales.
 - Yenny Gomez suena con `public/assets/audio/llamada.mp3` al recibir; al marcar suena más fuerte y durante 8 s. Tiro 99.
-- Monica Bernal no se mueve y recibe el 40 % de los pases del equipo; Patricia recibe el 45 % de los pases de la CPU, también sin presión.
+- Monica Bernal no se mueve y recibe el 40 % de los pases del equipo; su nombre (o el apodo editado, por ejemplo MB) y el globo del monito permanecen sobre su cabeza mientras esté en el campo. Patricia recibe el 45 % de los pases de la CPU, también sin presión.
 - Sebastian Londoño (C) es el delantero que saca y empieza controlado.
+
+## Primer plano y video de Mónica
+
+Cada gol abre una secuencia de cuatro segundos: acercamiento suave al goleador, festejo personalizado y regreso a la cámara de partido. En práctica también se muestra el festejo antes de recolocar el balón, sin reloj, fuera de juego ni saque de centro. El goleador permanece en su posición mientras el avatar se anima; las poses nunca mueven las coordenadas físicas. El cartel de gol queda abajo para despejar el centro de la imagen.
+
+`src/client/public/assets/video/monica-monkey.webm` deriva del `videoplayback.mp4` aportado por el usuario. Se quitó el verde, se redujo a 320×180 y se tomaron los segundos 1–17 para el bucle. Conserva el fondo gris que forma parte del dibujo. Se reproduce sin sonido, se pausa con el juego y libera video/textura al salir. El original no se incorpora al repositorio ni se descarga de Internet. `scripts/prepare-monkey-video.py` permite regenerarlo con FFmpeg mediante `imageio-ffmpeg`.
+
+Las pruebas automatizadas cubren rechazo de pases, conservación de procedencia/fuera de juego, perfiles independientes con compatibilidad anterior, once clips aplicados al GLB real, consumo único de goles y fin de cámara antes de reanudar. La revisión visual en navegador sigue pendiente: no había navegador conectado disponible el 13 de octubre de 2026.

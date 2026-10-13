@@ -46,3 +46,18 @@ No eliminar `render.ts`, `projection.ts` ni `ReferenceRenderer` hasta superar es
 ## Ampliación de cumpleaños
 
 Ver [editor para Sebastian](cumpleanos.md). La compilación y los 44 tests pasan. Los chunks de editor, vista previa y jugadores devueltos por HTTP en 4173 coinciden byte a byte con `dist/`. Siguen pendientes la revisión visual de rostros, la escucha real y la prueba interactiva del editor en navegador.
+
+## Reparto y festejos — 13 de octubre de 2026
+
+- `npm test`: 57 pruebas en ocho archivos. Incluyen pases que atraviesan a María, procedencia/fuera de juego intactos, consumo único de su frase, perfiles local/visitante, dorsales heredados, once clips ejecutados sobre el GLB y cámara de gol con pausa y recuperación de pasos.
+- `npm run build`: TypeScript y compilación estática correctos. Permanece el aviso de Vite por el chunk de Three.js superior a 500 kB.
+- Video VP9 con alfa de 285.476 bytes, servido como `video/webm` con HTTP 200 en desarrollo e incluido en `dist/assets/video/`. Se verificaron píxeles transparentes y un fotograma compuesto fuera del navegador.
+- No había navegador ni aplicaciones conectados a la herramienta de interacción. **Pendiente:** revisar globos y recorte del monito en WebGL, probar guardado de rivales desde la interfaz y observar los once festejos y el zoom en partido/práctica. Estas pruebas de Node no constituyen validación visual ni medición de GPU.
+
+### Corrección de brazos y cabello
+
+Las rotaciones genéricas de los brazos no correspondían a los ejes del esqueleto importado. `celebration-clips.ts` calcula hombro–codo–mano con los huesos reales y convierte el resultado en clips aditivos relativos al reposo. Los clips se preparan una vez por modelo; no se resuelve cinemática ni se modifica la simulación durante el partido.
+
+La cubierta de pelo corto anterior terminaba por debajo de la parte superior del cráneo. `hair.ts` construye una cubierta sobre el cuero cabelludo, con línea frontal por encima de los ojos y cobertura lateral/posterior. Se conserva la opción explícita Rapado.
+
+Se comprobaron posiciones de manos delante de los hombros en los once festejos, manos sobre la cabeza en brazos arriba, manos juntas al frente para corazón y cobertura del cráneo en los cuatro estilos con pelo. Se inspeccionaron ilustraciones geométricas por CPU de frente y perfil (brazos arriba, corazón, dab, avioncito, saludo y salto/giro); no sustituyen la revisión de materiales, iluminación y reproducción en WebGL. `AVATAR_QA_FILE` permite exportar esa geometría de inspección al ejecutar `avatar-presentation.test.ts`.
