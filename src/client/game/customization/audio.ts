@@ -152,6 +152,33 @@ export class BirthdayAudio {
     source.start(start);
     source.stop(start + length);
   }
+  /** Cheesy square-wave ad jingle; stop() cuts it like any other clip. */
+  adJingle(profile: BirthdayProfile, seconds = 7) {
+    this.stop();
+    const ctx = this.context;
+    if (!ctx || ctx.state !== "running" || profile.volume <= 0) return;
+    const notes = [72, 76, 79, 84, 79, 76, 72, 67],
+      start = ctx.currentTime;
+    for (let i = 0; i * 0.2 < seconds; i++) {
+      const source = ctx.createOscillator(),
+        gain = ctx.createGain(),
+        time = start + i * 0.2;
+      source.type = "square";
+      source.frequency.value = 440 * Math.pow(2, (notes[i % 8] - 69) / 12);
+      gain.gain.setValueAtTime(profile.volume * 0.07, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      this.nodes.add(source);
+      source.onended = () => {
+        source.disconnect();
+        gain.disconnect();
+        this.nodes.delete(source);
+      };
+      source.start(time);
+      source.stop(time + 0.19);
+    }
+  }
   async preview(custom: PlayerCustomization, profile: BirthdayProfile) {
     await this.unlock();
     await this.play(

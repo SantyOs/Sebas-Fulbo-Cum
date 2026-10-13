@@ -5,6 +5,8 @@ import {
 } from "../game/customization/profile";
 import { birthdayAudio } from "../game/customization/audio";
 import { BirthdayGoal } from "../components/game/BirthdayGoal";
+import { CpuAds } from "../components/game/CpuAds";
+import type { GoalPresentation } from "../game/customization/goals";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { Settings, RotateCcw, Pause, ArrowLeft } from "lucide-react";
 import { IntroMenu } from "../components/game/IntroMenu";
@@ -37,11 +39,8 @@ function loadQuality(): GraphicsQuality {
 export default function HomePage() {
   const [birthday, setBirthday] = useState(() => loadProfile(TEAMS)),
     [editor, setEditor] = useState(false),
-    [goal, setGoal] = useState<{
-      id: number;
-      name: string;
-      confetti: boolean;
-    } | null>(null);
+    [goal, setGoal] = useState<GoalPresentation | null>(null),
+    [ads, setAds] = useState(false);
   const [storageNotice, setStorageNotice] = useState("");
   // Presentation sliders must never reconstruct an ongoing match.
   const teams = useMemo(
@@ -81,7 +80,7 @@ export default function HomePage() {
     away,
     practice,
     quality,
-    paused: paused || settings,
+    paused: paused || settings || ads,
     onPause: (reason) => {
       setPaused(true);
       setPauseReason(
@@ -96,6 +95,7 @@ export default function HomePage() {
   const start = (isPractice: boolean) => {
     void birthdayAudio.unlock().catch(() => {});
     setGoal(null);
+    setAds(false);
     setPractice(isPractice);
     setPaused(false);
     setPauseReason("");
@@ -103,12 +103,14 @@ export default function HomePage() {
   };
   const restart = () => {
     setGoal(null);
+    setAds(false);
     setPaused(false);
     setSettings(false);
     setPauseReason("");
     setGameKey((k) => k + 1);
   };
   const menu = () => {
+    setAds(false);
     setSettings(false);
     setPaused(false);
     setPhase("intro");
@@ -215,6 +217,9 @@ export default function HomePage() {
                 goal={goal}
                 dedication={birthday.dedication}
                 paused={paused || settings}
+                onDone={() => {
+                  if (goal.team === "away" && !practice) setAds(true);
+                }}
               />
             )}
             {!ready && !error && (
@@ -289,6 +294,12 @@ export default function HomePage() {
             }}
           />
         </Suspense>
+      )}
+      {ads && phase === "playing" && (
+        <CpuAds
+          profile={birthday}
+          onClose={() => setAds(false)}
+        />
       )}
       {settings && (
         <SettingsModal

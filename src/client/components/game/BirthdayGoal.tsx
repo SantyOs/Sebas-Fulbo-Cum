@@ -3,17 +3,22 @@ export function BirthdayGoal({
   goal,
   dedication,
   paused,
+  onDone,
 }: {
   goal: { name: string; confetti: boolean };
   dedication: string;
   paused: boolean;
+  onDone?: () => void;
 }) {
   const [visible, setVisible] = useState(true);
   const remaining = useRef(4000);
   useEffect(() => {
     if (paused || !visible) return;
     const started = performance.now();
-    const timer = setTimeout(() => setVisible(false), remaining.current);
+    const timer = setTimeout(() => {
+      setVisible(false);
+      onDone?.();
+    }, remaining.current);
     return () => {
       clearTimeout(timer);
       remaining.current = Math.max(

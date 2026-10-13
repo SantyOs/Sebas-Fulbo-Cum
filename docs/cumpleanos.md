@@ -82,3 +82,7 @@ Cada gol abre una secuencia de cuatro segundos: acercamiento suave al goleador, 
 `src/client/public/assets/video/monica-monkey.webm` deriva del `videoplayback.mp4` aportado por el usuario. Se quitó el verde, se redujo a 320×180 y se tomaron los segundos 1–17 para el bucle. Conserva el fondo gris que forma parte del dibujo. Se reproduce sin sonido, se pausa con el juego y libera video/textura al salir. El original no se incorpora al repositorio ni se descarga de Internet. `scripts/prepare-monkey-video.py` permite regenerarlo con FFmpeg mediante `imageio-ffmpeg`.
 
 Las pruebas automatizadas cubren rechazo de pases, conservación de procedencia/fuera de juego, perfiles independientes con compatibilidad anterior, once clips aplicados al GLB real, consumo único de goles y fin de cámara antes de reanudar. La revisión visual en navegador sigue pendiente: no había navegador conectado disponible el 13 de octubre de 2026.
+
+## Anuncios tras gol de la CPU
+
+En partido (no en práctica), cuando marca el visitante, al terminar la celebración aparece `components/game/CpuAds.tsx` a pantalla completa y el partido queda en pausa. Rota seis anuncios con las imágenes de `public/assets/ads/` y un jingle sintetizado. Dura 7 s y luego solo se cierra con la X. «Omitir anuncio» abre un formulario de pago: sus campos no se leen, no se guardan ni se envían, y cualquier botón lo cierra y reinicia los 7 s.
