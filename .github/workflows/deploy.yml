@@ -31,8 +31,13 @@ jobs:
       - run: npm run build
       - name: Check deployment scripts
         run: bash -n scripts/deploy.sh scripts/activate-release.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: production-build
+          path: dist/
+          retention-days: 7
       - name: Deploy production
-        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && vars.DEPLOY_ENABLED == 'true'
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && vars.DEPLOY_ENABLED == 'true' && vars.DEPLOY_TRANSPORT == 'ssh'
         env:
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
@@ -43,3 +48,25 @@ jobs:
       - name: Deployment not configured
         if: github.ref == 'refs/heads/master' && vars.DEPLOY_ENABLED != 'true'
         run: echo 'Build validated. Configure the server using docs/despliegue.md to enable deployment.' >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-lan:
+    needs: build
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && vars.DEPLOY_ENABLED == 'true' && vars.DEPLOY_TRANSPORT == 'local'
+    runs-on: [self-hosted, Linux, sebas-fulbo]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: production-build
+          path: dist
+      - name: Activate local release
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '{"commit":"%s"}\n' "$GITHUB_SHA" > dist/version.json
+          mkdir -p /srv/sebas-fulbo/incoming
+          tar -czf "/srv/sebas-fulbo/incoming/$GITHUB_SHA.tar.gz" -C dist .
+          bash scripts/activate-release.sh "$GITHUB_SHA"
