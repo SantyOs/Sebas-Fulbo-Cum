@@ -82,8 +82,22 @@ export function makeRatings(role: SquadRole, tuple?: RatingTuple): Ratings {
   };
 }
 
+/** Office-cast quirks layered over a roster player (see customization/cast.ts). */
+export interface CastTraits {
+  /** Speech-bubble lines shown, in rotation, when a teammate's pass reaches him. */
+  phrases?: string[];
+  /** Presentation sound on receiving a pass / scoring. */
+  sound?: "call";
+  goalSound?: "call";
+  /** Never moves from his starting formation spot. */
+  still?: boolean;
+  /** Share (0..1) of his team's passes forced to him. */
+  passShare?: number;
+}
+
 export interface SquadPlayer {
   sourceId?: number;
+  cast?: CastTraits;
   custom?: PlayerCustomization;
   role: SquadRole;
   /** Shirt number, shown on the jersey + broadcast lower-third. */

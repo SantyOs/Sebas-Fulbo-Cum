@@ -2,7 +2,7 @@ import type { PlayerCustomization } from "./customization/profile";
 // Core engine-domain types shared across the simulation and renderer.
 // (Team data types — TeamData, Kit — live in ./teams/types.)
 
-import type { Ratings } from './teams/types';
+import type { CastTraits, Ratings } from './teams/types';
 
 export type Vec = { x: number; y: number };
 export type Team = 'home' | 'away';
@@ -10,6 +10,9 @@ export type Role = 'GK' | 'DF' | 'MF' | 'ST';
 
 export interface PlayerEntity {
   custom?: PlayerCustomization;
+  cast?: CastTraits;
+  /** Fixed spot for a `still` cast player. */
+  stillAt?: Vec;
   id: string;
   x: number;
   y: number;

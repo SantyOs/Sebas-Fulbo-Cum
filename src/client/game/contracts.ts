@@ -37,6 +37,8 @@ export interface MatchEvent {
   kind: MatchEventKind;
   playerId?: string;
   team?: Team;
+  /** Teammate whose pass this contact received. */
+  fromId?: string;
 }
 export interface MatchSnapshot {
   tick: number;

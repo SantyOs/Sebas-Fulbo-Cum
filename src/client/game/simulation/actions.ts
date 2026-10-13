@@ -781,6 +781,8 @@ export function pickPassTarget(
     kicker.team === "home" ? state.homePlayers : state.awayPlayers
   ).filter((p) => p !== kicker && !(opts.through && p.isGK));
   const opps = kicker.team === "home" ? state.awayPlayers : state.homePlayers;
+  const favorite = castPassTarget(state, mates);
+  if (favorite) return favorite;
 
   let best: PlayerEntity | null = null;
   let bestScore = -Infinity;
@@ -834,6 +836,15 @@ export function pickPassTarget(
   }
 
   return best;
+}
+
+/** A cast player with `passShare` steals that share of his team's passes. */
+export function castPassTarget(
+  state: MatchState,
+  mates: readonly PlayerEntity[],
+): PlayerEntity | null {
+  const fav = mates.find((m) => m.cast?.passShare);
+  return fav && state.random() < fav.cast!.passShare! ? fav : null;
 }
 
 export function passLaneEnd(
@@ -920,6 +931,7 @@ export function kickNoise(state: MatchState): number {
 
 export function afterKick(state: MatchState, kicker: PlayerEntity) {
   recordEvent(state, state.nextKickKind, kicker);
+  state.lastKickKind = state.nextKickKind;
   state.nextKickKind = "pass";
   state.owner = null;
   // Default: this kick is NOT a protected aerial pass. Lofted-pass callers

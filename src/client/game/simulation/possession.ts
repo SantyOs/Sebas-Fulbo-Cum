@@ -258,14 +258,23 @@ export function resolvePossession(state: MatchState) {
     return;
   }
 
-  if (best && best !== prev)
+  if (best && best !== prev) {
+    const passer = state.lastKicker;
     recordEvent(
       state,
       best.isGK && keeperMayHandle(state, best, state.lastKicker)
         ? "save"
         : "contact",
       best,
+      undefined,
+      passer &&
+        passer !== best &&
+        passer.team === best.team &&
+        state.lastKickKind === "pass"
+        ? passer
+        : null,
     );
+  }
   state.owner = best;
   if (best) {
     state.lastTouchTeam = best.team;

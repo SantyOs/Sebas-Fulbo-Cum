@@ -1,3 +1,4 @@
+import { CastLineCursor } from "./customization/cast";
 import { GoalEventCursor } from "./customization/goals";
 import { birthdayAudio } from "./customization/audio";
 import type { BirthdayProfile } from "./customization/profile";
@@ -42,6 +43,7 @@ export class PitchKickGame {
   private lastHud = "";
   private hudElapsed = 0;
   private goalCursor = new GoalEventCursor();
+  private castLines = new CastLineCursor();
   private unlockAudio = () => {
     void birthdayAudio.unlock().catch(() => {});
   };
@@ -132,9 +134,18 @@ export class PitchKickGame {
   }
   private goalEvents() {
     for (const goal of this.goalCursor.consume(this.current)) {
-      if (this.options.birthday)
-        void birthdayAudio.play(goal.sound, goal.volume, this.options.birthday);
+      const profile = this.options.birthday;
+      if (profile && goal.call) {
+        birthdayAudio.stop();
+        void birthdayAudio.playCall(true, profile);
+      } else if (profile)
+        void birthdayAudio.play(goal.sound, goal.volume, profile);
       this.options.onGoal?.(goal);
+    }
+    for (const line of this.castLines.consume(this.current)) {
+      if (line.text) this.renderer.say(line.playerId, line.text);
+      if (line.sound === "call" && this.options.birthday)
+        void birthdayAudio.playCall(false, this.options.birthday);
     }
   }
   setQuality(quality: GraphicsQuality) {

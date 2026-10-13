@@ -5,6 +5,7 @@ export interface GoalPresentation {
   confetti: boolean;
   sound: string;
   volume: number;
+  call: boolean;
 }
 /** Consume monotonically identified events exactly once, even across catch-up frames. */
 export class GoalEventCursor {
@@ -26,6 +27,7 @@ export class GoalEventCursor {
         confetti: celebration?.confetti ?? true,
         sound: celebration?.sound ?? "party",
         volume: celebration?.volume ?? 0.8,
+        call: scorer?.cast?.goalSound === "call",
       });
     }
     return goals;

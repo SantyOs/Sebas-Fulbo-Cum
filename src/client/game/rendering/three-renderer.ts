@@ -28,6 +28,71 @@ export class ThreeRenderer implements GameRenderer {
   private ring: THREE.Mesh;
   private switchMarker: THREE.Mesh;
   private gpu: string;
+  private bubbles = new Map<string, { sprite: THREE.Sprite; life: number }>();
+  /** Screen-sized speech bubble over a player; replaces his previous one. */
+  say(playerId: string, text: string) {
+    if (this.disposed) return;
+    this.dropBubble(playerId);
+    const lines: string[] = [];
+    for (const word of text.split(" ")) {
+      const last = lines.length - 1;
+      if (last >= 0 && (lines[last] + " " + word).length <= 22)
+        lines[last] += " " + word;
+      else lines.push(word);
+    }
+    const canvas = document.createElement("canvas"),
+      ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const font = "bold 46px system-ui, sans-serif",
+      lineH = 56,
+      pad = 26,
+      tail = 26;
+    ctx.font = font;
+    const textW = Math.max(...lines.map((l) => ctx.measureText(l).width));
+    canvas.width = Math.ceil(textW + pad * 2);
+    canvas.height = lines.length * lineH + pad * 2 + tail;
+    const w = canvas.width,
+      h = canvas.height - tail;
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#11161f";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.roundRect(3, 3, w - 6, h - 6, 24);
+    ctx.moveTo(w / 2 - 18, h - 4);
+    ctx.lineTo(w / 2, h + tail - 4);
+    ctx.lineTo(w / 2 + 18, h - 4);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillRect(w / 2 - 15, h - 9, 30, 8);
+    ctx.font = font;
+    ctx.fillStyle = "#11161f";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    lines.forEach((l, i) => ctx.fillText(l, w / 2, pad + lineH * (i + 0.5)));
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: texture,
+        depthTest: false,
+        sizeAttenuation: false,
+      }),
+    );
+    const height = 0.04 * (canvas.height / 64);
+    sprite.scale.set((height * canvas.width) / canvas.height, height, 1);
+    sprite.center.set(0.5, 0);
+    sprite.renderOrder = 10;
+    this.scene.add(sprite);
+    this.bubbles.set(playerId, { sprite, life: 2.8 });
+  }
+  private dropBubble(playerId: string) {
+    const bubble = this.bubbles.get(playerId);
+    if (!bubble) return;
+    this.scene.remove(bubble.sprite);
+    bubble.sprite.material.map?.dispose();
+    bubble.sprite.material.dispose();
+    this.bubbles.delete(playerId);
+  }
   constructor(
     private canvas: HTMLCanvasElement,
     private home: TeamData,
@@ -230,6 +295,15 @@ export class ThreeRenderer implements GameRenderer {
       this.switchMarker.position
         .copy(hint.root.position)
         .add(new THREE.Vector3(0, 2.45, 0));
+    for (const [id, bubble] of this.bubbles) {
+      const avatar = this.players.get(id);
+      bubble.life -= dt;
+      if (!avatar || bubble.life <= 0) this.dropBubble(id);
+      else
+        bubble.sprite.position
+          .copy(avatar.root.position)
+          .add(new THREE.Vector3(0, 2.9, 0));
+    }
     const ripple = [current.netRipple.left, current.netRipple.right];
     this.stadium.nets.forEach((net, i) => {
       net.scale.x = 1 + Math.sin(current.tick * 0.7) * ripple[i] * 0.1;
@@ -255,6 +329,7 @@ export class ThreeRenderer implements GameRenderer {
     this.observer.disconnect();
     this.canvas.removeEventListener("webglcontextlost", this.contextLost);
     this.players.forEach((p) => p.dispose());
+    for (const id of [...this.bubbles.keys()]) this.dropBubble(id);
     this.players.clear();
     this.assets?.dispose();
     this.stadium.dispose();

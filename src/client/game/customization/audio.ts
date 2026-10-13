@@ -111,6 +111,43 @@ class BirthdayAudio {
     noise.start();
     noise.stop(start + 2);
   }
+  private call?: Promise<AudioBuffer>;
+  private callUntil = 0;
+  /** Bundled phone ring: a short ring on receiving, a long loud one on a goal. */
+  async playCall(goal: boolean, profile: BirthdayProfile) {
+    const ctx = this.context;
+    if (!ctx || ctx.state !== "running" || profile.volume <= 0) return;
+    if (!goal && ctx.currentTime < this.callUntil) return;
+    const token = this.generation;
+    this.call ??= fetch(`${import.meta.env.BASE_URL}assets/audio/llamada.mp3`)
+      .then((r) => r.arrayBuffer())
+      .then((b) => ctx.decodeAudioData(b));
+    let buffer: AudioBuffer;
+    try {
+      buffer = await this.call;
+    } catch {
+      this.call = undefined;
+      return;
+    }
+    if (token !== this.generation) return;
+    const source = ctx.createBufferSource(),
+      gain = ctx.createGain(),
+      start = ctx.currentTime,
+      length = Math.min(buffer.duration, goal ? 8 : 3);
+    source.buffer = buffer;
+    gain.gain.value = profile.volume * (goal ? 1.6 : 0.6);
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    this.nodes.add(source);
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+      this.nodes.delete(source);
+    };
+    this.callUntil = start + length;
+    source.start(start);
+    source.stop(start + length);
+  }
   async preview(custom: PlayerCustomization, profile: BirthdayProfile) {
     await this.unlock();
     await this.play(

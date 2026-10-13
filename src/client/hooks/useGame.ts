@@ -2,6 +2,7 @@ import type { BirthdayProfile } from "../game/customization/profile";
 import { useEffect, useRef, useState } from "react";
 import type { PitchKickGame } from "../game/engine";
 import type { GraphicsQuality } from "../game/contracts";
+import { applyCast } from "../game/customization/cast";
 import { practiceTeams } from "../game/teams/practice";
 import type { TeamData } from "../game/teams/types";
 import type { HudState } from "../game/types";
@@ -50,7 +51,10 @@ export function useGame(options: {
       try {
         const { PitchKickGame } = await import("../game/engine");
         if (cancelled) return;
-        const [h, a] = practice ? practiceTeams(home, away) : [home, away];
+        const [castHome, castAway] = applyCast(home, away);
+        const [h, a] = practice
+          ? practiceTeams(castHome, castAway)
+          : [castHome, castAway];
         game = new PitchKickGame(canvas, setHud, h, a, {
           practice,
           birthday: latest.current.birthday,

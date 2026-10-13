@@ -7,6 +7,7 @@ export function recordEvent(
   kind: MatchEventKind,
   player?: PlayerEntity | null,
   team?: Team,
+  from?: PlayerEntity | null,
 ) {
   state.events.push({
     id: ++state.eventSequence,
@@ -15,6 +16,7 @@ export function recordEvent(
     kind,
     playerId: player?.id,
     team: team ?? player?.team,
+    fromId: from?.id,
   });
   if (state.events.length > 32) state.events.shift();
 }

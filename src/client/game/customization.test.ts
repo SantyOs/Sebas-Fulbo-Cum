@@ -288,7 +288,14 @@ it("delivers one personalized celebration per goal despite repeated snapshots", 
   };
   const cursor = new GoalEventCursor();
   expect(cursor.consume(withGoal)).toEqual([
-    { id: 2, name: "Sebastian", confetti: true, sound: "stadium", volume: 0.8 },
+    {
+      id: 2,
+      name: "Sebastian",
+      confetti: true,
+      sound: "stadium",
+      volume: 0.8,
+      call: false,
+    },
   ]);
   expect(cursor.consume(withGoal)).toEqual([]);
 });

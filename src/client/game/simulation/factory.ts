@@ -36,8 +36,10 @@ export function makePlayer(
     num: squad.num,
     name: squad.name,
     custom: squad.custom,
+    cast: squad.cast,
     ratings: squad.ratings,
   };
+  if (squad.cast?.still) result.stillAt = { ...result.anchor };
   if (squad.custom) {
     result.skin = squad.custom.skin;
     result.hair = squad.custom.hairColor;

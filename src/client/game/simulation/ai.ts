@@ -24,7 +24,12 @@ import {
   shotSpreadMul,
 } from "../ratings";
 import type { PlayerEntity, Vec } from "../types";
-import { executeThrowIn, kickBallToward, passPower } from "./actions";
+import {
+  castPassTarget,
+  executeThrowIn,
+  kickBallToward,
+  passPower,
+} from "./actions";
 import {
   homeKeeperDistribute,
   keeperDistribute,
@@ -700,11 +705,16 @@ export function updateAwayCarrier(
     return;
   }
 
-  // Pass when pressured and a teammate is further forward + open.
-  if (pressure < 85) {
-    let best: PlayerEntity | null = null;
+  // Pass when pressured and a teammate is further forward + open; a cast
+  // favourite is also fed the ball unpressured.
+  const favorite = castPassTarget(
+    state,
+    state.awayPlayers.filter((m) => m !== p && !m.isGK),
+  );
+  if (pressure < 85 || favorite) {
+    let best: PlayerEntity | null = favorite;
     let bestScore = -Infinity;
-    for (const m of state.awayPlayers) {
+    for (const m of favorite ? [] : state.awayPlayers) {
       if (m === p) continue;
       if (m.x > p.x - 40) continue; // must be more advanced (closer to left goal)
       const openness = nearestOpponentDist(state, m);

@@ -40,3 +40,12 @@ Todo se guarda en `localStorage` bajo `wc2026.birthday.v1`. Los audios se incluy
 Las pruebas verifican saneamiento, exportación/importación, persistencia, IDs/dorsales, edición de vértices reales sin mutar el modelo compartido, eventos únicos y cancelación/silencio de audio mediante un contexto de prueba. La suite existente sigue cubriendo partido y controles.
 
 **Pendiente de navegador real:** revisar rasgos y mezclas visuales, escuchar clips, comprobar la interacción completa del taller y medir rendimiento con jugadores personalizados. El entorno de esta entrega no ofrece navegador conectado; cargar un GLB en Node o simular AudioContext no sustituye esa aceptación.
+
+## Reparto de la oficina
+
+`game/customization/cast.ts` asigna nombres y rasgos por lado y posición de la formación, sea cual sea la selección: local = equipo del jugador, visitante = rivales. Las plantillas originales y los IDs de simulación no cambian.
+
+- Al recibir un pase de un compañero, el jugador muestra su frase en un globo sobre la cabeza (las de Patricia rotan en orden).
+- Yenny Gomez suena con `public/assets/audio/llamada.mp3` al recibir; al marcar suena más fuerte y durante 8 s. Tiro 99.
+- Monica Bernal no se mueve y recibe el 40 % de los pases del equipo; Patricia recibe el 45 % de los pases de la CPU, también sin presión.
+- Sebastian Londoño (C) es el delantero que saca y empieza controlado.

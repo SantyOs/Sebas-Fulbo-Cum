@@ -129,6 +129,12 @@ export function update(state: MatchState, dt: number) {
   updateHomeTeammates(state, dt);
   updateAwayTeam(state, dt);
   separatePlayers(state);
+  for (const p of state.homePlayers.concat(state.awayPlayers))
+    if (p.stillAt) {
+      p.x = p.stillAt.x;
+      p.y = p.stillAt.y;
+      p.vx = p.vy = 0;
+    }
   constrainKeeperWithBall(state);
   updateJostle(state, dt);
   resolvePossession(state);
