@@ -1,3 +1,4 @@
+import { FacePhotoEditor } from "./FacePhotoEditor";
 import type { Dispatch, SetStateAction } from "react";
 import {
   CELEBRATIONS,
@@ -182,6 +183,10 @@ export function PlayerEditorFields({
       )}
       {tab === "Cara" && (
         <>
+          <FacePhotoEditor
+            photo={custom.photo}
+            onChange={(photo) => update({ photo })}
+          />
           <h3>Esculpe su cara</h3>
           <p>
             Rasgos estilizados del modelo 3D. Usa Frente y Perfil para revisar

@@ -1,4 +1,10 @@
-﻿import type { Ratings, SquadPlayer, TeamData } from "../teams/types";
+import {
+  normalizePhoto,
+  yennyPhoto,
+  MAX_FACE_PHOTOS,
+  type FacePhoto,
+} from "./photo";
+import type { Ratings, SquadPlayer, TeamData } from "../teams/types";
 import { makeRatings } from "../teams/types";
 import { HAIR_COLORS, SKIN_TONES } from "../constants";
 export const HAIRSTYLES = ["short", "curly", "mohawk", "long", "bald"] as const;
@@ -42,6 +48,7 @@ export const defaultFace = (): FaceShape => ({
 });
 export interface PlayerCustomization {
   face: FaceShape;
+  photo?: FacePhoto | null;
   name: string;
   num: number;
   skin: string;
@@ -97,6 +104,7 @@ export function defaultPlayer(
   const i = team.players.indexOf(p);
   return {
     face: defaultFace(),
+    photo: p.cast?.facePhoto === "yenny" ? yennyPhoto() : undefined,
     name: p.name,
     num: p.num,
     skin: SKIN_TONES[Math.max(0, i) % SKIN_TONES.length],
@@ -150,6 +158,7 @@ export function normalizeProfile(
   result.cameraZoom = number(source.cameraZoom, 1, 1.4, result.cameraZoom);
   result.volume = number(source.volume, 0, 1, result.volume);
   let total = 0;
+  let photoTotal = 0;
   for (const [key, v] of Object.entries(object(source.sounds)).slice(0, 4)) {
     const sound = object(v);
     if (
@@ -214,6 +223,11 @@ export function normalizeProfile(
             closeup: c.closeup !== false,
           },
         };
+        saved.photo = normalizePhoto(v.photo);
+        if (saved.photo && saved.photo.source !== "builtin:yenny") {
+          photoTotal += saved.photo.source.length;
+          if (photoTotal > MAX_FACE_PHOTOS) saved.photo = undefined;
+        }
         saved.face = defaultFace();
         for (const feature of Object.keys(saved.face) as (keyof FaceShape)[])
           saved.face[feature] = number(f[feature], 0.65, 1.35, 1);

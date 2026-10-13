@@ -92,6 +92,8 @@ export interface CastTraits {
   /** Presentation sound on receiving a pass / scoring. */
   sound?: "call";
   goalSound?: "call";
+  finisher?: boolean;
+  facePhoto?: "yenny";
   /** Never moves from his starting formation spot. */
   still?: boolean;
   /** Share (0..1) of his team's passes forced to him. */

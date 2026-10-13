@@ -45,6 +45,8 @@ export const RIVAL_CAST: CastMember[] = [
     name: "Yenny Gomez",
     sound: "call",
     goalSound: "call",
+    finisher: true,
+    facePhoto: "yenny",
     r: [86, 99, 76, 88, 40, 76],
   },
   {

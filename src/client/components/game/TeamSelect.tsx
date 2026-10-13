@@ -8,17 +8,23 @@ import { KitJersey } from "./KitJersey";
 
 export function TeamSelect({
   teams = TEAMS,
+  practice = false,
+  initialHome = 0,
+  initialAway = 1,
   enabled,
   onStart,
   onBack,
 }: {
   teams?: TeamData[];
+  practice?: boolean;
+  initialHome?: number;
+  initialAway?: number;
   enabled: boolean;
   onStart: (home: number, away: number) => void;
   onBack: () => void;
 }) {
-  const [home, setHome] = useState(0),
-    [away, setAway] = useState(1),
+  const [home, setHome] = useState(initialHome),
+    [away, setAway] = useState(initialAway),
     [side, setSide] = useState<"home" | "away">("home");
   const index = side === "home" ? home : away;
   const confirm = () => {
@@ -47,7 +53,11 @@ export function TeamSelect({
     <section className="selection-screen">
       <div className="section-top">
         <div>
-          <p className="eyebrow">PARTIDO RÁPIDO · 11 CONTRA 11</p>
+          <p className="eyebrow">
+            {practice
+              ? "ENTRENAMIENTO · 5 CONTRA PORTERO"
+              : "PARTIDO RÁPIDO · 11 CONTRA 11"}
+          </p>
           <h2>ELIGE TU SELECCIÓN</h2>
         </div>
         <button className="quiet-button" onClick={onBack}>
@@ -118,7 +128,11 @@ export function TeamSelect({
           <span>Flechas / stick · Enter / A para confirmar</span>
         </p>
         <button className="primary-button" onClick={confirm}>
-          {side === "home" ? "CONFIRMAR EQUIPO →" : "JUGAR PARTIDO →"}
+          {side === "home"
+            ? "CONFIRMAR EQUIPO →"
+            : practice
+              ? "ENTRENAR →"
+              : "JUGAR PARTIDO →"}
         </button>
       </div>
     </section>

@@ -43,11 +43,35 @@ Las pruebas verifican saneamiento, exportación/importación, persistencia, IDs/
 
 ## Reparto de la oficina
 
+### Fotos y entrenamiento
+
+En **Personajes → Cara → Foto del rostro** se puede subir JPG, PNG o WebP
+(hasta 8 MB), ajustar zoom, centro horizontal/vertical y opacidad, o quitarla.
+Se conserva la transparencia de PNG. Se prepara un recorte central cuadrado de
+512 píxeles; para fotos de cuerpo completo conviene recortar primero el rostro.
+La foto se proyecta sobre la geometría animada: no reconstruye una cabeza 3D.
+Yenny incluye la foto aportada por el usuario, también en perfiles antiguos;
+quitarla explícitamente desactiva esa foto predeterminada.
+
+Las fotos subidas se guardan y exportan con los personajes, independientemente
+para local y rival. No se admiten URLs externas ni SVG. Límite por imagen
+preparada: 180 000 caracteres; total de fotos: 1 200 000. La importación admite
+hasta 6 MB y sanea datos inválidos o excedidos. El guardado avisa si falta espacio.
+
+El entrenamiento pasa por la misma selección de equipos y conserva personajes,
+rostros, atributos, celebraciones, audio y ajustes. Mantiene cinco jugadores
+locales contra el portero rival, sin reloj, fuera de juego ni reinicios de partido.
+
+Validación: pruebas de saneamiento/persistencia de fotos, conservación de la
+personalización en entrenamiento, proyección del shader, decisiones de tiro
+de Yenny y duración/cancelación del tono. Revisión visual y auditiva pendiente:
+no había navegador conectado disponible durante esta implementación.
+
 `game/customization/cast.ts` asigna nombres y rasgos por lado y posición de la formación, sea cual sea la selección: local = equipo del jugador, visitante = rivales. Las plantillas originales y los IDs de simulación no cambian.
 
 - Al recibir un pase de un compañero, el jugador muestra su nombre y frase en un globo con fondo blanco al 78 % de opacidad (las de Patricia rotan en orden). Los nombres editados se conservan en la partida.
 - Maria Alejandra Osorio, la contable, deja pasar los pases de sus compañeros y dice «No sé, nunca me había pasado, primera vez que me pasa». Se anuncia una sola vez por pase, incluso si atraviesa su zona entre dos pasos de simulación. No cuenta como toque ni cambia la procedencia del balón; puede interceptar balones rivales.
-- Yenny Gomez suena con `public/assets/audio/llamada.mp3` al recibir; al marcar suena más fuerte y durante 8 s. Tiro 99.
+- Yenny Gomez suena con `public/assets/audio/llamada.mp3` al recibir; al marcar suena más fuerte y durante 12 s en bucle con salida gradual. Tiro 99; busca pases en posiciones adelantadas y remata desde 22 metros apuntando al lado opuesto al portero.
 - Monica Bernal no se mueve y recibe el 40 % de los pases del equipo; su nombre (o el apodo editado, por ejemplo MB) y el globo del monito permanecen sobre su cabeza mientras esté en el campo. Patricia recibe el 45 % de los pases de la CPU, también sin presión.
 - Sebastian Londoño (C) es el delantero que saca y empieza controlado.
 

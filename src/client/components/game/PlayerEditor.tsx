@@ -10,6 +10,10 @@ import {
   type BirthdayProfile,
   type PlayerCustomization,
 } from "../../game/customization/profile";
+import {
+  effectivePhoto,
+  MAX_FACE_PHOTOS,
+} from "../../game/customization/photo";
 import { birthdayAudio } from "../../game/customization/audio";
 const PlayerPreview = lazy(() => import("./PlayerPreview"));
 export default function PlayerEditor({
@@ -39,10 +43,14 @@ export default function PlayerEditor({
   const team = castTeams[side === "home" ? 0 : 1],
     player = team.players[playerIndex],
     key = playerKey(team, player, side),
-    custom =
+    savedCustom =
       draft.players[key] ??
       draft.players[playerKey(team, player)] ??
       defaultPlayer(team, player);
+  const custom = {
+    ...savedCustom,
+    photo: effectivePhoto({ custom: savedCustom, cast: player.cast }),
+  };
   const update = (patch: Partial<PlayerCustomization>) =>
     setDraft((d) => ({
       ...d,
@@ -88,7 +96,7 @@ export default function PlayerEditor({
   const importFile = async (f?: File) => {
     if (!f) return;
     try {
-      if (f.size > 4_000_000) throw new Error("El archivo supera 4 MB.");
+      if (f.size > 6_000_000) throw new Error("El archivo supera 6 MB.");
       const value = JSON.parse(await f.text());
       if (value?.version !== 1)
         throw new Error("Formato de regalo no compatible.");
@@ -165,6 +173,18 @@ export default function PlayerEditor({
     }
   };
   const save = () => {
+    const photoSize = Object.values(draft.players).reduce(
+      (total, p) =>
+        total +
+        (p.photo?.source.startsWith("data:") ? p.photo.source.length : 0),
+      0,
+    );
+    if (photoSize > MAX_FACE_PHOTOS) {
+      setNotice(
+        "Las fotos superan el espacio disponible (1,2 MB). Quita algunas antes de guardar.",
+      );
+      return;
+    }
     const normalized = normalizeProfile(draft, TEAMS);
     try {
       saveProfile(normalized);
@@ -289,6 +309,7 @@ export default function PlayerEditor({
               ))}
             </nav>
             <PlayerEditorFields
+              key={key}
               tab={tab}
               custom={custom}
               draft={draft}

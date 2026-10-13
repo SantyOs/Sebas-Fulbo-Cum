@@ -7,6 +7,8 @@ import { resolvePossession } from "./simulation/possession";
 import { TEAMS } from "./teams";
 import { updateBall } from "./simulation/physics";
 import { recordEvent } from "./simulation/events";
+import { updateAwayCarrier } from "./simulation/ai";
+import { FIELD_H } from "./constants";
 
 const castSim = () => {
   const [home, away] = applyCast(TEAMS[0], TEAMS[1]);
@@ -18,6 +20,38 @@ const find = (sim: MatchSimulation, name: string) =>
   )!;
 
 describe("office cast", () => {
+  it("lets Yenny shoot from outside the box toward the open corner", () => {
+    const s = castSim().state;
+    const yenny = s.awayPlayers[9];
+    Object.assign(yenny, { x: 390, y: FIELD_H / 2, vx: 0, vy: 0 });
+    Object.assign(s.homePlayers[0], { y: FIELD_H / 2 - 40 });
+    Object.assign(s, { owner: yenny, cpuDecision: 0, freeze: 0 });
+    Object.assign(s.ball, { x: yenny.x, y: yenny.y, z: 0 });
+    updateAwayCarrier(s, yenny, 0);
+    expect(s.events.at(-1)?.kind).toBe("shot");
+    expect(s.ball.vx).toBeLessThan(0);
+    expect(s.ball.vy).toBeGreaterThan(0);
+  });
+  it("feeds an open Yenny ahead even when her teammate is not pressured", () => {
+    const s = castSim().state;
+    const carrier = s.awayPlayers[5],
+      yenny = s.awayPlayers[9];
+    for (const p of s.homePlayers) Object.assign(p, { x: 100, y: 100 });
+    for (const p of s.awayPlayers)
+      Object.assign(p, {
+        x: 1000,
+        y: 100,
+        cast: { ...p.cast, passShare: undefined },
+      });
+    Object.assign(carrier, { x: 700, y: FIELD_H / 2 });
+    Object.assign(yenny, { x: 420, y: FIELD_H / 2 });
+    Object.assign(s, { owner: carrier, cpuDecision: 0, freeze: 0 });
+    Object.assign(s.ball, { x: carrier.x, y: carrier.y, z: 0 });
+    updateAwayCarrier(s, carrier, 0);
+    expect(s.events.at(-1)?.kind).toBe("pass");
+    expect(s.ball.vx).toBeLessThan(0);
+    expect(Math.abs(s.ball.vy)).toBeLessThan(Math.abs(s.ball.vx) * 0.1);
+  });
   it("lets Maria's teammate passes through without touching or repeating her line", () => {
     const sim = castSim(),
       s = sim.state,

@@ -1,6 +1,6 @@
-﻿import type { BirthdayProfile, PlayerCustomization } from "./profile";
+import type { BirthdayProfile, PlayerCustomization } from "./profile";
 /** Presentation-only audio, unlocked by a user gesture and stopped on pause/exit. */
-class BirthdayAudio {
+export class BirthdayAudio {
   private context?: AudioContext;
   private nodes = new Set<AudioScheduledSourceNode>();
   private generation = 0;
@@ -9,6 +9,7 @@ class BirthdayAudio {
     if (this.context.state === "suspended") await this.context.resume();
   }
   stop() {
+    this.callUntil = 0;
     this.generation++;
     for (const node of this.nodes) {
       try {
@@ -133,9 +134,12 @@ class BirthdayAudio {
     const source = ctx.createBufferSource(),
       gain = ctx.createGain(),
       start = ctx.currentTime,
-      length = Math.min(buffer.duration, goal ? 8 : 3);
+      length = goal ? 12 : Math.min(buffer.duration, 3);
     source.buffer = buffer;
-    gain.gain.value = profile.volume * (goal ? 1.6 : 0.6);
+    source.loop = goal;
+    gain.gain.setValueAtTime(profile.volume * (goal ? 2.4 : 0.6), start);
+    gain.gain.setValueAtTime(profile.volume * (goal ? 2.4 : 0.6), start + length - 0.25);
+    gain.gain.linearRampToValueAtTime(0, start + length);
     source.connect(gain);
     gain.connect(ctx.destination);
     this.nodes.add(source);

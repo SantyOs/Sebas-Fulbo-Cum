@@ -239,6 +239,8 @@ export class ThreeRenderer implements GameRenderer {
   async warmup(snapshot: MatchSnapshot) {
     if (this.disposed) return;
     this.render(snapshot, snapshot, 1, 0);
+    await Promise.all([...this.players.values()].map((avatar) => avatar.ready));
+    if (this.disposed) return;
     await this.renderer.compileAsync(this.scene, this.camera);
   }
   resize() {

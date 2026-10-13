@@ -1,5 +1,8 @@
 import {
   AWAY_CARRY_SPEED,
+  FINISHER_RANGE,
+  FINISHER_CORNER_MARGIN,
+  FINISHER_PASS_BONUS,
   AWAY_CHASE_SPEED,
   AWAY_FORMATION_SPEED,
   CONTROL_DIST,
@@ -686,9 +689,14 @@ export function updateAwayCarrier(
   const pressure = nearestOpponentDist(state, p);
 
   // Shoot when in range.
-  if (p.x < 300) {
+  if (p.x < (p.cast?.finisher ? FINISHER_RANGE : 300)) {
     state.nextKickKind = "shot";
-    const gy = clamp(p.y, goalTop + 24, goalBottom - 24);
+    const keeper = state.homePlayers.find((m) => m.isGK);
+    const gy = p.cast?.finisher
+      ? (keeper?.y ?? FIELD_H / 2) <= FIELD_H / 2
+        ? goalBottom - FINISHER_CORNER_MARGIN
+        : goalTop + FINISHER_CORNER_MARGIN
+      : clamp(p.y, goalTop + 24, goalBottom - 24);
     // SHOOTING applies to the CPU too — a weak forward hits it softer and
     // less accurately, a clinical one rifles it in.
     kickBallToward(
@@ -711,7 +719,14 @@ export function updateAwayCarrier(
     state,
     state.awayPlayers.filter((m) => m !== p && !m.isGK),
   );
-  if (pressure < 85 || favorite) {
+  const finisherOpen = state.awayPlayers.some(
+    (m) =>
+      m !== p &&
+      m.cast?.finisher &&
+      m.x < p.x - 40 &&
+      nearestOpponentDist(state, m) >= 90,
+  );
+  if (pressure < 85 || favorite || finisherOpen) {
     let best: PlayerEntity | null = favorite;
     let bestScore = -Infinity;
     for (const m of favorite ? [] : state.awayPlayers) {
@@ -719,7 +734,10 @@ export function updateAwayCarrier(
       if (m.x > p.x - 40) continue; // must be more advanced (closer to left goal)
       const openness = nearestOpponentDist(state, m);
       if (openness < 90) continue;
-      const score = openness - dist(p, m) * 0.2;
+      const score =
+        openness -
+        dist(p, m) * 0.2 +
+        (m.cast?.finisher ? FINISHER_PASS_BONUS : 0);
       if (score > bestScore) {
         bestScore = score;
         best = m;

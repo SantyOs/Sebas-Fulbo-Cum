@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Footballer, loadPlayerAssets } from "../../game/rendering/footballer";
 import type { MatchSnapshot } from "../../game/contracts";
@@ -71,6 +71,7 @@ export default function PlayerPreview({
         ratings: p.ratings,
         kit: p.role === "GK" ? t.gkKit : t.kit,
         custom: c,
+        cast: p.cast,
       };
       if (avatar) {
         scene.remove(avatar.root);
@@ -78,6 +79,15 @@ export default function PlayerPreview({
       }
       avatar = new Footballer(assets!, view, t);
       scene.add(avatar.root);
+      const currentAvatar = avatar;
+      void avatar.ready.catch((error) => {
+        if (!disposed && avatar === currentAvatar)
+          setError(
+            error instanceof Error
+              ? error.message
+              : "No se pudo cargar la foto.",
+          );
+      });
     };
     const draw = (now: number) => {
       if (disposed || !renderer || !assets) return;

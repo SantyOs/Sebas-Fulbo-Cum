@@ -99,7 +99,7 @@ export default function HomePage() {
     setPractice(isPractice);
     setPaused(false);
     setPauseReason("");
-    setPhase(isPractice ? "playing" : "select");
+    setPhase("select");
   };
   const restart = () => {
     setGoal(null);
@@ -188,6 +188,9 @@ export default function HomePage() {
       {phase === "select" && (
         <TeamSelect
           teams={teams}
+          practice={practice}
+          initialHome={homeIndex}
+          initialAway={awayIndex}
           enabled={!settings && !editor}
           onBack={menu}
           onStart={(h, a) => {

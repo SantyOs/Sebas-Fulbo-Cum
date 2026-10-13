@@ -1,3 +1,5 @@
+import { effectivePhoto, photoUrl } from "../customization/photo";
+import { applyFacePhoto } from "./face-photo";
 import { CELEBRATIONS } from "../customization/profile";
 import { sculptFace } from "../customization/face";
 import { PX_PER_M } from "../constants";
@@ -149,6 +151,8 @@ function eyeMaterial(p: PlayerView) {
 
 export class Footballer {
   readonly root = new THREE.Group();
+  readonly ready: Promise<void>;
+  private disposed = false;
   private body: THREE.Object3D;
   private mixer: THREE.AnimationMixer;
   private baseActions: Record<string, THREE.AnimationAction> = {};
@@ -167,6 +171,47 @@ export class Footballer {
   private textures: THREE.Texture[] = [];
   private orientation = 0;
   constructor(assets: PlayerAssets, p: PlayerView, team: TeamData) {
+    const photo = effectivePhoto(p);
+    let photoTexture: THREE.Texture | undefined;
+    this.ready = photo
+      ? new Promise<void>((resolve, reject) => {
+          photoTexture = new THREE.TextureLoader().load(
+            photoUrl(photo.source),
+            (texture: THREE.Texture) => {
+              if (this.disposed) {
+                texture.dispose();
+                resolve();
+                return;
+              }
+              const image = texture.image as HTMLImageElement;
+              if (Math.max(image.width, image.height) > 512) {
+                const canvas = document.createElement("canvas");
+                const scale = 512 / Math.max(image.width, image.height);
+                canvas.width = Math.max(1, Math.round(image.width * scale));
+                canvas.height = Math.max(1, Math.round(image.height * scale));
+                const context = canvas.getContext("2d");
+                if (context) {
+                  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                  texture.image = canvas;
+                  texture.needsUpdate = true;
+                }
+              }
+              resolve();
+            },
+            undefined,
+            () =>
+              reject(
+                new Error(
+                  "No se pudo cargar una foto de rostro. Revisa la imagen y vuelve a intentar.",
+                ),
+              ),
+          );
+          photoTexture.colorSpace = THREE.SRGBColorSpace;
+          this.textures.push(photoTexture);
+        })
+      : Promise.resolve();
+    // Preview may disappear before its pending image loads. Warmup still awaits errors.
+    void this.ready.catch(() => {});
     this.body = clone(assets.model.scene);
     this.root.add(this.body);
     // The free pack's athletic body is narrowed to football proportions.
@@ -202,6 +247,7 @@ export class Footballer {
         : name.includes("eyes")
           ? eyeMaterial(p)
           : kitMaterial(p, team);
+      if (photo && photoTexture) applyFacePhoto(material, photoTexture, photo);
       o.material = material;
       this.materials.push(material);
       o.castShadow = true;
@@ -481,6 +527,7 @@ export class Footballer {
       this.root.rotation.y = Math.atan2(p.slideDir.x, p.slideDir.y);
   }
   dispose() {
+    this.disposed = true;
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.body);
     this.materials.forEach((m) => m.dispose());
