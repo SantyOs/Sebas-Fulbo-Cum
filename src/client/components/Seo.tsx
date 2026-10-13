@@ -5,8 +5,7 @@
  *
  * Defaults come from `seoConfig` (see `src/client/seo.config.ts`). Render
  * `<Seo />` once at the app root so every page inherits the site-wide
- * title/description/OG tags; pass the `seo` prop to `<Page />` (or render
- * `<Seo />` again inside a page) to override per route.
+ * title/description/OG tags.
  */
 
 import { seoConfig } from '@/client/seo.config';

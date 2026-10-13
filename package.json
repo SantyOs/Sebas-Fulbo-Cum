@@ -1,39 +1,36 @@
 {
-  "name": "sandbox",
+  "name": "world-cup-2026",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "modelence build",
-    "start": "node .modelence/build/app.mjs",
-    "dev": "modelence dev",
-    "dev:mobile": "cd mobile && npm run start",
-    "postinstall": "node scripts/postinstall.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview",
+    "start": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@modelence/react-query": "^1.2.5",
-    "@tanstack/react-query": "^5.90.21",
-    "clsx": "^2.1.1",
     "lucide-react": "^0.575.0",
-    "modelence": "^0.19.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^6.30.3",
-    "tailwind-merge": "^3.4.0",
-    "zod": "^4.1.13"
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.14",
-    "@types/bcrypt": "^6.0.0",
-    "@types/node": "^20.11.0",
+    "@types/node": "^22.20.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "tailwindcss": "^4.1.14",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vite": "^6.4.2",
+    "vitest": "^5.0.3"
   },
-  "overrides": {
-    "cookie": "^0.7.2"
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

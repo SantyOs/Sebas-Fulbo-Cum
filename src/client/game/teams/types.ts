@@ -1,3 +1,4 @@
+import type { PlayerCustomization } from "../customization/profile";
 // Country squad data model. Each nation lives in its own small file under
 // this folder and exports a single `TeamData`. The engine is team-agnostic:
 // it takes two `TeamData` (home + away) and builds the match from them.
@@ -35,10 +36,7 @@ export type RatingTuple = [number, number, number, number, number, number];
 
 export type SquadRole = 'GK' | 'DF' | 'MF' | 'ST';
 
-/** Role from squad index: 0 = GK, 1-4 = DF, 5-8 = MF, 9-10 = ST. */
-export function roleForIndex(i: number): SquadRole {
-  return i === 0 ? 'GK' : i <= 4 ? 'DF' : i <= 8 ? 'MF' : 'ST';
-}
+export type FormationSlot = Vec & { role: SquadRole };
 
 // Role weightings for the overall, loosely following EA's outfield model
 // (and a goalkeeper-specific blend that leans on DEF/PHY which we use to
@@ -85,6 +83,9 @@ export function makeRatings(role: SquadRole, tuple?: RatingTuple): Ratings {
 }
 
 export interface SquadPlayer {
+  sourceId?: number;
+  custom?: PlayerCustomization;
+  role: SquadRole;
   /** Shirt number, shown on the jersey + broadcast lower-third. */
   num: number;
   /** Surname, shown in the broadcast lower-third. */
@@ -107,13 +108,13 @@ export interface TeamData {
   textColor: string;
   /** Outfield kit (home / primary). */
   kit: Kit;
-  /** Outfield away (change) kit, worn when this team is the visitor. */
+  /** Outfield change kit, selected against the opponent for contrast. */
   awayKit: Kit;
   /** Goalkeeper kit (distinct, like real football). */
   gkKit: Kit;
   /** Index of the player who takes the kickoff (usually the central striker). */
   kickoffFwd: number;
-  /** Exactly 11 players; index 0 is always the goalkeeper. */
+  /** Eleven players for a match; practice uses a role-selected subset. */
   players: SquadPlayer[];
 }
 
@@ -121,13 +122,14 @@ export interface TeamData {
  *  each country file stays tiny. An optional `r` tuple gives the player real
  *  FIFA-style ratings; omitted players fall back to a role baseline. */
 export function buildSquad(
-  formation: Vec[],
+  formation: FormationSlot[],
   roster: { num: number; name: string; r?: RatingTuple }[],
 ): SquadPlayer[] {
   return roster.map((entry, i) => ({
+    role: formation[i].role,
     num: entry.num,
     name: entry.name,
     pos: formation[i],
-    ratings: makeRatings(roleForIndex(i), entry.r),
+    ratings: makeRatings(formation[i].role, entry.r),
   }));
 }

@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "outDir": "./.modelence/",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
@@ -17,18 +16,11 @@
       "DOM.Iterable"
     ],
     "jsx": "react-jsx",
-    "allowJs": true,
     "moduleResolution": "bundler",
     "strict": true,
     "noEmit": true,
-    "incremental": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "useDefineForClassFields": true,
     "allowImportingTsExtensions": true,
     "noUnusedLocals": true,
@@ -36,12 +28,11 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "**/*.ts",
-    "**/*.d.ts",
-    "**/*.tsx"
+    "src/client",
+    "vite.config.ts"
   ],
   "exclude": [
     "node_modules",
-    "mobile"
+    "dist"
   ]
 }

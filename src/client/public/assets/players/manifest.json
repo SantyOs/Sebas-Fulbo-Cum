@@ -1,0 +1,26 @@
+{
+  "sources": {
+    "characters": "https://quaternius.itch.io/universal-base-characters",
+    "animations": "https://quaternius.itch.io/universal-animation-library"
+  },
+  "edition": "Standard (free)",
+  "license": "CC0-1.0",
+  "files": {
+    "animations-LICENSE.txt": {
+      "bytes": 332,
+      "sha256": "6d01f55c6e4c49a2c9963e147e561945ae2c83958c8ca667d90a6bffdbfac061"
+    },
+    "characters-LICENSE.txt": {
+      "bytes": 806,
+      "sha256": "0f4beaf0fe360a7732e58bbe3dbf60a2422367fbea60cb9ea4add968f383268e"
+    },
+    "footballer.glb": {
+      "bytes": 741496,
+      "sha256": "eb15a8dbca5bd7ff805ab5b78fcda4b924e090301a3e887ecd139f440b5035d6"
+    },
+    "locomotion.glb": {
+      "bytes": 822288,
+      "sha256": "91529e8ca90c8a9d8460d075a310131b73100d2fa488e2d3bf1ad1bc9229be7f"
+    }
+  }
+}

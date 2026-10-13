@@ -1,3 +1,4 @@
+import type { PlayerCustomization } from "./customization/profile";
 // Core engine-domain types shared across the simulation and renderer.
 // (Team data types — TeamData, Kit — live in ./teams/types.)
 
@@ -8,6 +9,8 @@ export type Team = 'home' | 'away';
 export type Role = 'GK' | 'DF' | 'MF' | 'ST';
 
 export interface PlayerEntity {
+  custom?: PlayerCustomization;
+  id: string;
   x: number;
   y: number;
   vx: number;

@@ -1,102 +1,69 @@
-# World Cup 2026
+﻿# World Cup 2026
 
-An arcade, FIFA-style football game that runs entirely in your browser. Pick a national team and play a full match against the CPU — rendered live on `<canvas>` with a proper TV-style broadcast tele camera, just like FIFA.
+Fútbol arcade 3D para PC en el navegador. Partido 11 contra 11 frente a la CPU y práctica, teclado configurable y mando estándar. Diez selecciones: Argentina, Brasil, Francia, España, Inglaterra, Portugal, Alemania, Países Bajos, Uruguay y Colombia.
 
-<p align="center">
-  <a href="https://worldcup2026.modelence.ai/">
-    <img src="docs/screenshot.png" alt="World Cup 2026 gameplay" width="800">
-  </a>
-</p>
+## Arranque
 
-<p align="center">
-  Play: <strong><a href="https://worldcup2026.modelence.ai/">worldcup2026.modelence.ai</a></strong>
-</p>
+Node.js 22.12 o superior y un navegador con WebGL 2 y aceleración gráfica.
 
-## Features
-
-- **11v11 matches** against the CPU with all the rules you'd expect — kickoffs, throw-ins, corners, goal kicks, offside, and full-time.
-- **All 48 nations** from the 2026 World Cup, each with its own kits (including away/change strips), crests, and per-team skill ratings.
-- **FIFA-style broadcast camera** — a pseudo-3D tele cam that follows the ball with smoothing, depth panning, and crowd/stadium parallax.
-- **Deep control scheme** — charged shots and passes (hold to power up), through balls, lofted chips, player switching, and FIFA-style defending (standing tackles, slide tackles, contain/jockey).
-- **Practice mode** — a free-form rehearsal pitch with a lone keeper and no match structure, so you can drill shooting and passing.
-- **Rebindable keys** — remap any control from the in-game settings popup (persisted to `localStorage`).
-- Fully client-side gameplay, no backend game state required.
-
-## Controls
-
-Defaults (all keys are rebindable in the settings popup):
-
-| Action | Key |
-| --- | --- |
-| Move | Arrow keys |
-| Sprint | `E` |
-| Shot | `D` |
-| Short pass | `S` |
-| Long pass | `A` |
-| Through pass | `W` |
-| Lofted through ball | `Q` + `W` |
-| Switch player | `Q` |
-| Contain / jockey | `C` |
-
-- **Charge mechanic:** shots and passes charge while the key is held and fire on release — hold longer for more power (watch the power meter at the bottom of the screen).
-- **Defending:** with no ball at your feet, `D` performs a standing tackle; hold `C` to contain and jockey the carrier.
-
-## Tech stack
-
-- [Modelence](https://modelence.com/) full-stack framework
-- React 19 + React Router
-- Vite + Tailwind CSS v4
-- TypeScript
-- HTML5 Canvas + `requestAnimationFrame` for the game engine
-- Optional Expo / React Native mobile app (in `mobile/`)
-
-## Getting started
-
-### Prerequisites
-
-- Node.js 20+
-
-### Install & run
-
-```bash
-npm install
+```powershell
+npm ci
 npm run dev
 ```
 
-This starts the Modelence dev server. Open the printed local URL in your browser to play.
+Abre la dirección que imprime Vite, normalmente `http://localhost:5173`. No requiere cuentas, backend, variables de entorno ni base de datos. Los modelos y animaciones se sirven desde el proyecto; Google Fonts es opcional y tiene respaldo del sistema. No abras el HTML con doble clic.
 
-### Build & start (production)
-
-```bash
+```powershell
+npm test
 npm run build
-npm run start
+npm start
 ```
 
-## Project structure
+`build` comprueba TypeScript y produce `dist/`; `start` sirve esa compilación localmente, normalmente en el puerto 4173. Para publicar basta un alojamiento estático que incluya `dist/assets/players/`. `npm run test:watch` mantiene las pruebas abiertas.
 
-```
-.
-├── src/
-│   ├── client/
-│   │   ├── game/        # Game engine, split by domain
-│   │   │   ├── engine.ts      # PitchKickGame: loop, physics, input, AI, rules
-│   │   │   ├── render.ts      # Pure canvas renderer (broadcast camera)
-│   │   │   ├── projection.ts  # TV camera projection & clamps
-│   │   │   ├── constants.ts   # World scale / geometry / physics tunables
-│   │   │   ├── math.ts        # Pure math helpers
-│   │   │   └── types.ts       # Shared game types
-│   │   └── pages/
-│   │       └── HomePage.tsx   # Canvas host, HUD, menus, team select
-│   └── server/          # Modelence backend modules
-├── mobile/              # Optional Expo / React Native app
-├── scripts/             # postinstall + tooling
-└── modelence.config.ts
-```
+## Jugar
 
-The game engine was split by domain out of an earlier monolithic `engine.ts`. The `engine.ts` class holds all stateful logic (game loop, physics, input, AI, possession, match rules), while geometry, math, projection, types, and rendering live in their own pure, import-light modules.
+La selección inicial es Argentina–Brasil. Elige tu equipo y luego el rival en una cuadrícula de diez selecciones. Usa ratón, flechas y Enter, o stick/cruceta y A. Esc/B vuelve atrás. No se permite un equipo contra sí mismo.
 
-Shared types/logic intended for both web and mobile should live under `src/shared/`.
+| Acción | Teclado inicial | Mando estándar |
+| --- | --- | --- |
+| Mover | Flechas | Stick izquierdo / cruceta |
+| Sprint | E | RB / R1 |
+| Pase corto | S | A / cruz |
+| Tiro / entrada de pie | D | B / círculo |
+| Pase largo / barrida | A | X / cuadrado |
+| Pase al hueco / salida del portero | W | Y / triángulo |
+| Cambiar jugador / modificador elevado | Q | LB / L1 |
+| Contener | C | LT / L2 |
+| Pausa | Esc | Start |
 
-## License
+Pases y tiros cargan al mantener el botón y se ejecutan al soltarlo. Q+W o LB+Y eleva el pase al hueco. El menú Ajustes permite remapear teclas; se guardan localmente. Cambiar de ventana, ocultar la pestaña o desconectar el mando activo pausa y libera entradas; hay que reanudar explícitamente.
 
-See the repository for license details.
+El partido conserva 180 segundos de reloj activo, representados como 90 minutos, más las pausas de reinicio y celebración. Práctica tiene un portero y cuatro jugadores de campo locales, un portero rival y duración libre.
+
+## Arquitectura
+
+- `game/simulation/`: estado, acciones, IA, posesión, física, porteros y reglas, sin React, Three.js ni navegador. `MatchSimulation.step(dt, input)` avanza el partido con azar sembrado.
+- `game/contracts.ts`: entradas por acciones, snapshots, eventos y contrato del renderer.
+- `game/input/`: teclado y Gamepad API; zona muerta radial de 0,18.
+- `game/engine.ts` y `game/runtime/`: ciclo de vida, pasos fijos a 60 Hz, interpolación y métricas.
+- `game/rendering/`: Three.js, estadio, modelos con esqueleto, locomoción y clips deportivos propios. La simulación decide contactos y desplazamientos.
+- `game/teams/`: diez plantillas de once jugadores, roles según formación y elección de equipaciones por contraste.
+- `hooks/useGame.ts`: creación, pausa y destrucción. El motor se carga al entrar al partido.
+- `components/game/`: menús, selección, marcador y ajustes. `HomePage.tsx` coordina las pantallas.
+
+El renderer 2D se conserva temporalmente como referencia de migración; no se importa en el juego publicado. Se retirará después de la validación visual 3D.
+
+## Estado de la entrega
+
+La compilación y las pruebas automatizadas están verificadas. La apariencia final, un partido jugado de principio a fin, diez reinicios WebGL y el objetivo de rendimiento en la RTX 3050 Laptop **siguen pendientes de comprobación real en navegador**. No hay un navegador conectado al entorno de implementación.
+
+Ajustes incluye medición y exportación JSON: 10 segundos de calentamiento, 60 de juego activo, FPS, p95, resolución interna y GPU informada por WebGL. Calidad alta renderiza a 1920×1080 con composición 16:9; media a 1280×720. Las pruebas de simulación no demuestran rendimiento gráfico.
+
+Ver [arquitectura y decisiones](docs/arquitectura-3d.md), [validación y pendientes](docs/validacion-3d.md), [recursos y licencias](docs/recursos-3d.md) y [análisis inicial de limpieza](docs/analisis-tecnico.md).
+
+## Edición de cumpleaños
+
+El menú **Personalizar regalo** prepara la dedicatoria de Sebastian y permite editar jugadores, caras, atributos, celebraciones y sonidos con vista previa 3D. Guarda cambios para el próximo partido o exporta/importa el regalo como JSON, incluidos los clips propios. En Ajustes puedes acercar la cámara y regular el volumen durante la partida.
+
+Consulta [la guía del editor de cumpleaños](docs/cumpleanos.md) para controles faciales, límites de audio y traslado a otro PC. La revisión visual y auditiva en navegador sigue pendiente.

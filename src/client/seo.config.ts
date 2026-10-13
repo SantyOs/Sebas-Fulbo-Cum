@@ -2,14 +2,7 @@
  * Single source of truth for the site's <title>, meta description, and
  * Open Graph defaults.
  *
- * Per-page overrides go through the `<Seo />` component or the `seo` prop on
- * `<Page />`. The static fallback in `src/client/index.html` should mirror
- * `siteName` so non-JS crawlers and the first paint show the right title.
- *
- * IMPORTANT: update `siteName` and `description` here as soon as the real
- * product name and pitch are known. The defaults below are intentionally
- * generic placeholders — leaving them shipped will hurt SEO and social
- * previews.
+ * Keep the display name and description aligned with the game's branding.
  */
 
 export interface SeoConfig {
