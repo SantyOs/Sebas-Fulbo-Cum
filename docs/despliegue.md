@@ -9,6 +9,29 @@ El juego se sirve en `http://100.116.191.99:8086`. Requiere acceso a esa red Tai
 La configuración de producción usa `DEPLOY_ENABLED=true` y `DEPLOY_TRANSPORT=local`.
 Una ejecución completa debe mostrar tanto `build` como `deploy-lan` en verde.
 
+## Dominio propio con Cloudflare Tunnel
+
+Dominio previsto: `https://fulbo.sosdev.com.co`. Nginx está conectado a la red Docker
+externa `proxy`; Traefik enruta ese hostname al puerto 80 del juego. El runner
+permanece en su red privada de despliegue.
+
+En el túnel existente de Cloudflare, añadir una aplicación publicada:
+
+- Subdominio: `fulbo`.
+- Dominio: `sosdev.com.co`.
+- Ruta: vacía.
+- Tipo de servicio: `HTTP`.
+- URL de servicio: `traefik:80`.
+
+Cloudflare gestiona el HTTPS público. No usar `localhost:8086` como destino del
+túnel: cloudflared corre en otro contenedor. Conservar el encabezado Host original;
+no configurar un HTTP Host Header distinto de `fulbo.sosdev.com.co`.
+
+La publicación del hostname en Cloudflare y su comprobación HTTPS están pendientes
+hasta guardar esa ruta en el panel. No hace falta crear otro túnel ni abrir puertos
+del router. Comprobar `/version.json` por HTTPS después de guardarla. El despliegue
+automático continúa igual para Tailscale y el dominio.
+
 ## Destino previsto
 
 ### Instalación Docker en el servidor Tailscale

@@ -4,6 +4,15 @@ services:
     restart: unless-stopped
     ports:
       - "100.116.191.99:8086:80"
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: proxy
+      traefik.http.routers.sebas-fulbo.entrypoints: web
+      traefik.http.routers.sebas-fulbo.rule: Host(`fulbo.sosdev.com.co`)
+      traefik.http.services.sebas-fulbo.loadbalancer.server.port: "80"
     volumes:
       - /srv/sebas-fulbo:/srv/sebas-fulbo:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
@@ -27,3 +36,7 @@ services:
 
 volumes:
   runner-state:
+
+networks:
+  proxy:
+    external: true
