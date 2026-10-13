@@ -35,7 +35,7 @@ describe("PC input", () => {
   it("removes the old physical binding and preserves a fast press-release pair", () => {
     const input = new ActionInput(),
       bindings = assignKey(DEFAULT_BINDINGS, "shot", "KeyF");
-    input.sample(new Set(["KeyD"]), bindings);
+    input.sample(new Set(["KeyL"]), bindings);
     expect(input.consume().held.has("shot")).toBe(false);
     input.sample(new Set(["KeyF"]), bindings);
     input.sample(new Set(), bindings);
@@ -45,8 +45,8 @@ describe("PC input", () => {
     expect(input.consume().pressed).toHaveLength(0);
   });
   it("swaps duplicate assignments and repairs corrupted saved data", () => {
-    const swapped = assignKey(DEFAULT_BINDINGS, "shot", "KeyS");
-    expect(swapped.shortPass).toBe("KeyD");
+    const swapped = assignKey(DEFAULT_BINDINGS, "shot", "Digit5");
+    expect(swapped.shortPass).toBe("KeyL");
     const fixed = normalizeBindings({
       shot: "KeyF",
       shortPass: "KeyF",
@@ -97,7 +97,7 @@ describe("PC input", () => {
       input = new BrowserInput(DEFAULT_BINDINGS, pause, () => {});
     input.attach();
     const key = Object.assign(new Event("keydown"), {
-      code: "KeyD",
+      code: "KeyL",
       repeat: false,
     });
     win.dispatchEvent(key);

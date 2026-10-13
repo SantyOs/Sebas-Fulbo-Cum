@@ -2,7 +2,6 @@ import type { BirthdayProfile } from "../game/customization/profile";
 import { useEffect, useRef, useState } from "react";
 import type { PitchKickGame } from "../game/engine";
 import type { GraphicsQuality } from "../game/contracts";
-import type { KeyBindings } from "../game/keybindings";
 import { practiceTeams } from "../game/teams/practice";
 import type { TeamData } from "../game/teams/types";
 import type { HudState } from "../game/types";
@@ -26,7 +25,6 @@ export function useGame(options: {
   home: TeamData;
   away: TeamData;
   practice: boolean;
-  bindings: KeyBindings;
   quality: GraphicsQuality;
   paused: boolean;
   onPause: (reason: PauseReason) => void;
@@ -57,7 +55,6 @@ export function useGame(options: {
           practice,
           birthday: latest.current.birthday,
           onGoal: (goal) => latest.current.onGoal(goal),
-          bindings: latest.current.bindings,
           quality: latest.current.quality,
           seed: 2026 + gameKey,
           onReady: () => {
@@ -90,9 +87,6 @@ export function useGame(options: {
   useEffect(() => {
     gameRef.current?.setPaused(options.paused);
   }, [options.paused]);
-  useEffect(() => {
-    gameRef.current?.setBindings(options.bindings);
-  }, [options.bindings]);
   useEffect(() => {
     gameRef.current?.setQuality(options.quality);
   }, [options.quality]);

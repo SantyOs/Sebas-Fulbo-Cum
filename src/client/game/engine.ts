@@ -2,7 +2,6 @@ import { GoalEventCursor } from "./customization/goals";
 import { birthdayAudio } from "./customization/audio";
 import type { BirthdayProfile } from "./customization/profile";
 import type { GraphicsQuality, MatchSnapshot } from "./contracts";
-import type { KeyBindings } from "./keybindings";
 import { DEFAULT_BINDINGS } from "./keybindings";
 import { BrowserInput, type PauseReason } from "./input/browser";
 import { ThreeRenderer } from "./rendering/three-renderer";
@@ -19,7 +18,6 @@ export interface GameOptions {
   birthday?: BirthdayProfile;
   onGoal?: (goal: { id: number; name: string; confetti: boolean }) => void;
   practice?: boolean;
-  bindings?: KeyBindings;
   quality?: GraphicsQuality;
   seed?: number;
   onReady?: () => void;
@@ -68,7 +66,7 @@ export class PitchKickGame {
     );
     this.renderer.setCameraZoom(options.birthday?.cameraZoom ?? 1.18);
     this.input = new BrowserInput(
-      options.bindings ?? DEFAULT_BINDINGS,
+      DEFAULT_BINDINGS,
       (reason) => {
         this.setPaused(true);
         options.onPause?.(reason);
@@ -138,10 +136,6 @@ export class PitchKickGame {
         void birthdayAudio.play(goal.sound, goal.volume, this.options.birthday);
       this.options.onGoal?.(goal);
     }
-  }
-  setBindings(bindings: KeyBindings) {
-    this.input.setBindings(bindings);
-    this.simulation.clearInput();
   }
   setQuality(quality: GraphicsQuality) {
     this.renderer.setQuality(quality);

@@ -18,6 +18,7 @@ import {
   loadBindings,
   saveBindings,
   controlsLegend,
+  DEFAULT_BINDINGS,
   type KeyBindings,
 } from "../game/keybindings";
 import type { GraphicsQuality } from "../game/contracts";
@@ -79,7 +80,6 @@ export default function HomePage() {
     home,
     away,
     practice,
-    bindings,
     quality,
     paused: paused || settings,
     onPause: (reason) => {
@@ -237,7 +237,7 @@ export default function HomePage() {
           <footer className="controls-footer">
             <span className="controller-status">{controller}</span>
             <div>
-              {controlsLegend(bindings).map((item, i) => (
+              {controlsLegend(DEFAULT_BINDINGS).map((item, i) => (
                 <span key={i}>
                   <kbd>{item.keys}</kbd> {item.label}
                 </span>

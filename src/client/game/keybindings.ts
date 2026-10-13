@@ -13,17 +13,18 @@ export type GameAction =
 
 export type KeyBindings = Record<GameAction, string>;
 
-/** Physical keys are translated to actions only by the input adapter. */
+/** Physical keys are translated to actions only by the input adapter. The
+ *  engine always plays with these; saved bindings only feed the settings panel. */
 export const DEFAULT_BINDINGS: KeyBindings = {
-  moveUp: "ArrowUp",
-  moveDown: "ArrowDown",
-  moveLeft: "ArrowLeft",
-  moveRight: "ArrowRight",
+  moveUp: "KeyW",
+  moveDown: "KeyS",
+  moveLeft: "KeyA",
+  moveRight: "KeyD",
   sprint: "KeyE",
-  shot: "KeyD",
-  shortPass: "KeyS",
-  longPass: "KeyA",
-  throughPass: "KeyW",
+  shot: "KeyL",
+  shortPass: "Digit5",
+  longPass: "Digit1",
+  throughPass: "KeyB",
   switchPlayer: "KeyQ",
   contain: "KeyC",
 };

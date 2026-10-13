@@ -11,7 +11,7 @@ export class BrowserInput {
   private status = "";
   private paused = false;
   constructor(
-    private bindings: KeyBindings,
+    private readonly bindings: KeyBindings,
     private onPause: (reason: PauseReason) => void,
     private onStatus: (message: string) => void,
   ) {}
@@ -26,10 +26,6 @@ export class BrowserInput {
     window.removeEventListener("keyup", this.keyUp);
     window.removeEventListener("blur", this.blur);
     document.removeEventListener("visibilitychange", this.visibility);
-    this.clear();
-  }
-  setBindings(bindings: KeyBindings) {
-    this.bindings = bindings;
     this.clear();
   }
   setPaused(paused: boolean) {
