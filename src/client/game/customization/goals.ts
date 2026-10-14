@@ -1,4 +1,5 @@
 ﻿import type { MatchSnapshot } from "../contracts";
+import { celebrationSecs } from "../constants";
 export interface GoalPresentation {
   id: number;
   name: string;
@@ -6,6 +7,7 @@ export interface GoalPresentation {
   sound: string;
   volume: number;
   call: boolean;
+  seconds: number;
   team?: "home" | "away";
 }
 /** Consume monotonically identified events exactly once, even across catch-up frames. */
@@ -29,6 +31,7 @@ export class GoalEventCursor {
         sound: celebration?.sound ?? "party",
         volume: celebration?.volume ?? 0.8,
         call: scorer?.cast?.goalSound === "call",
+        seconds: celebrationSecs(scorer),
         team: event.team,
       });
     }

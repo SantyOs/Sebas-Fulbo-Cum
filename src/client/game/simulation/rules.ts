@@ -1,6 +1,6 @@
 import { recordEvent } from "./events";
 import {
-  CELEBRATION_SECS,
+  celebrationSecs,
   FIELD_H,
   FIELD_W,
   goalBottom,
@@ -445,8 +445,8 @@ export function handleGoals(state: MatchState) {
     if (state.ball.x >= FIELD_W - 2) {
       state.homeScore += 1;
       recordEvent(state, "goal", state.lastKicker, "home");
-      setMessage(state, "GOAL!", CELEBRATION_SECS);
-      state.celebration = CELEBRATION_SECS;
+      setMessage(state, "GOAL!", celebrationSecs(state.lastKicker));
+      state.celebration = celebrationSecs(state.lastKicker);
       state.scorer = state.lastKicker;
       state.owner = null;
       state.ball.vx = state.ball.vy = state.ball.vz = 0;
@@ -479,10 +479,10 @@ export function startCelebration(
   side: "left" | "right",
 ) {
   recordEvent(state, "goal", state.lastKicker, scoringTeam);
-  state.celebration = CELEBRATION_SECS;
+  state.celebration = celebrationSecs(state.lastKicker);
   state.celebrateTeam = scoringTeam;
   state.pendingKickoff = nextKickoff;
-  setMessage(state, msg, CELEBRATION_SECS);
+  setMessage(state, msg, state.celebration);
   state.netRipple[side] = 1;
 
   // Nestle the ball into the back of the net so the strike clearly counts.

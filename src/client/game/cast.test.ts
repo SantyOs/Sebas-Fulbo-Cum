@@ -9,6 +9,7 @@ import { updateBall } from "./simulation/physics";
 import { recordEvent } from "./simulation/events";
 import { updateAwayCarrier } from "./simulation/ai";
 import { FIELD_H } from "./constants";
+import { startCelebration } from "./simulation/rules";
 
 const castSim = () => {
   const [home, away] = applyCast(TEAMS[0], TEAMS[1]);
@@ -32,6 +33,12 @@ describe("office cast", () => {
     expect(sebas.ratings.sho).toBe(base + 8);
     sim.setInputDevice("keyboard");
     expect(sebas.ratings.sho).toBe(base);
+  });
+  it("gives Yenny's goal two extra celebration seconds", () => {
+    const s = castSim().state;
+    s.lastKicker = find({ state: s } as MatchSimulation, "Yenny");
+    startCelebration(s, "away", "GOL", "home", "left");
+    expect(s.celebration).toBe(6);
   });
   it("lets Yenny shoot from outside the box toward the open corner", () => {
     const s = castSim().state;

@@ -435,7 +435,8 @@ export class Footballer {
       this.lastEvent = e.id;
       if (e.playerId === p.id && e.kind !== "restart" && e.kind !== "refusal") {
         if (e.kind === "goal" && e.team && e.team !== p.team) continue;
-        if (e.kind === "goal") this.celebrationTime = 3.6;
+        if (e.kind === "goal")
+          this.celebrationTime = 3.6 + (p.cast?.celebrationBonus ?? 0);
         kickEvent ||= e.kind === "pass" || e.kind === "shot";
         this.play(
           e.kind === "contact"
@@ -460,7 +461,7 @@ export class Footballer {
     if (p.throwing && !this.throwing) this.play("throw");
     if (p.celebrating && !this.celebrating) {
       this.play(this.celebrationName(p));
-      this.celebrationTime = 3.6;
+      this.celebrationTime = 3.6 + (p.cast?.celebrationBonus ?? 0);
     }
     if (handling) {
       const action = this.sports.save;
@@ -502,7 +503,9 @@ export class Footballer {
     this.body.position.z = 0;
     this.body.position.y = slide ? -0.32 : diveProgress * 0.42;
     if (this.celebrationTime > 0) {
-      const t = (3.6 - this.celebrationTime) * (celebration?.speed ?? 1),
+      const t =
+          (3.6 + (p.cast?.celebrationBonus ?? 0) - this.celebrationTime) *
+          (celebration?.speed ?? 1),
         fade = Math.min(1, this.celebrationTime * 3, t * 4);
       this.body.position.y +=
         Math.abs(Math.sin(t * 7)) * (celebration?.jump ?? 0.15) * fade;

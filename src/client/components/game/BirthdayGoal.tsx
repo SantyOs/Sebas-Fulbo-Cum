@@ -5,13 +5,13 @@ export function BirthdayGoal({
   paused,
   onDone,
 }: {
-  goal: { name: string; confetti: boolean };
+  goal: { name: string; confetti: boolean; seconds: number };
   dedication: string;
   paused: boolean;
   onDone?: () => void;
 }) {
   const [visible, setVisible] = useState(true);
-  const remaining = useRef(4000);
+  const remaining = useRef(goal.seconds * 1000);
   useEffect(() => {
     if (paused || !visible) return;
     const started = performance.now();
