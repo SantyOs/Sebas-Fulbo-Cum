@@ -567,14 +567,17 @@ export function updateAwayTeam(state: MatchState, dt: number) {
   // hold the line vs. rush out (and keeps him inside the box).
   const level = DIFFICULTY[state.difficulty];
   const outfield = state.awayPlayers.filter((p) => !p.isGK);
-  const chaser =
-    carrier ?? nearestTo(state, outfield, state.ball) ?? state.awayPlayers[1];
+  // Gamepad free run: nobody presses; rivals hold their shape and let him go.
+  const freeRun = state.freeGoal === "active";
+  const chaser = freeRun
+    ? null
+    : (carrier ?? nearestTo(state, outfield, state.ball) ?? state.awayPlayers[1]);
 
   // When the USER has the ball, the nearest CPU defender steps right onto him
   // and commits a tackle — a defender in front of you should actually try to
   // win it, not back off and let you stroll past.
   const userCarrier =
-    state.owner && state.owner.team === "home" && !state.owner.isGK
+    !freeRun && state.owner && state.owner.team === "home" && !state.owner.isGK
       ? state.owner
       : null;
 

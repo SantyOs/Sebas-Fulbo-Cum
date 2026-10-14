@@ -3,7 +3,7 @@ import { applyCast, CastLineCursor } from "./customization/cast";
 import { emptyInput, type MatchSnapshot } from "./contracts";
 import { MatchSimulation } from "./simulation";
 import { pickPassTarget } from "./simulation/actions";
-import { resolvePossession } from "./simulation/possession";
+import { pokeTackle, resolvePossession } from "./simulation/possession";
 import { TEAMS } from "./teams";
 import { updateBall } from "./simulation/physics";
 import { recordEvent } from "./simulation/events";
@@ -40,6 +40,43 @@ describe("office cast", () => {
     s.lastKicker = find({ state: s } as MatchSimulation, "Yenny");
     startCelebration(s, "away", "GOL", "home", "left");
     expect(s.celebration).toBe(6);
+  });
+  it("gives Sebastian one untouchable free goal per match with a pad", () => {
+    const sim = castSim(),
+      s = sim.state,
+      sebas = find(sim, "Sebastian"),
+      mate = find(sim, "Nelson"),
+      rival = s.awayPlayers[4],
+      keeper = s.awayPlayers.find((p) => p.isGK)!;
+    const receive = () => {
+      Object.assign(s, { owner: null, lastKicker: mate, lastKickKind: "pass" });
+      Object.assign(s, { ballFree: 0, kickerLock: 0, stealProtect: 0 });
+      Object.assign(s.ball, { x: sebas.x + 5, y: sebas.y, z: 0, vx: 0, vy: 0 });
+      Object.assign(rival, { x: sebas.x + 12, y: sebas.y });
+      resolvePossession(s);
+    };
+    sim.setInputDevice("keyboard");
+    receive();
+    expect(s.freeGoal).toBe("armed");
+    sim.setInputDevice("pad");
+    receive();
+    expect(s.owner).toBe(sebas);
+    expect(s.freeGoal).toBe("active");
+    s.stealProtect = 0;
+    expect(pokeTackle(s, rival, Infinity, false)).toBe(false);
+    // His shot runs through the keeper untouched.
+    Object.assign(s, { owner: null, lastKicker: sebas, lastKickKind: "shot" });
+    Object.assign(s.ball, { x: keeper.x - 2, y: keeper.y, vx: 900, vy: 0 });
+    resolvePossession(s);
+    expect(s.owner).toBeNull();
+    startCelebration(s, "home", "GOL", "away", "right");
+    expect(s.events.at(-1)?.freeGoal).toBe(true);
+    expect(s.celebration).toBe(7);
+    expect(s.freeGoal).toBe("used");
+    receive();
+    expect(s.freeGoal).toBe("used");
+    s.stealProtect = 0;
+    expect(pokeTackle(s, rival, Infinity, false)).toBe(true);
   });
   it("with a pad only forces passes to Monica when she is near and open", () => {
     const sim = castSim(),

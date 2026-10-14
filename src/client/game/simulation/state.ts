@@ -129,6 +129,9 @@ export class MatchState {
     isThrowIn: boolean;
   } | null = null;
   refusedPasses = new Set<string>();
+  /** Gamepad free run: armed until a pass reaches the cast striker, active
+   *  while he keeps the ball or his shot travels, used once he scores. */
+  freeGoal: "armed" | "active" | "used" = "armed";
   celebration = 0;
   celebrateTeam: Team | null = null;
   pendingKickoff: Team | null = null;

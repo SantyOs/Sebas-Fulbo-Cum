@@ -22,7 +22,7 @@ export class GoalFocus {
       this.playerId =
         scorer?.custom?.celebration.closeup === false ? undefined : scorer?.id;
       this.goalTick = event.tick;
-      this.duration = celebrationSecs(scorer);
+      this.duration = celebrationSecs(scorer, event.freeGoal);
       this.elapsed = 0;
     }
     this.elapsed = Math.max(this.elapsed, (snapshot.tick - this.goalTick) / 60);

@@ -2,7 +2,7 @@ import { effectivePhoto, photoUrl } from "../customization/photo";
 import { applyFacePhoto } from "./face-photo";
 import { CELEBRATIONS } from "../customization/profile";
 import { sculptFace } from "../customization/face";
-import { PX_PER_M } from "../constants";
+import { FREE_GOAL_BONUS, PX_PER_M } from "../constants";
 import * as THREE from "three";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
@@ -166,6 +166,7 @@ export class Footballer {
   private castSlot = 0;
   private celebrating = false;
   private celebrationTime = 0;
+  private freeGoal = false;
   private materials: THREE.Material[] = [];
   private geometries: THREE.BufferGeometry[] = [];
   private textures: THREE.Texture[] = [];
@@ -362,7 +363,13 @@ export class Footballer {
     );
     this.setBase("Idle_Loop");
   }
+  private celebrationLength(p: PlayerView) {
+    return (
+      3.6 + (p.cast?.celebrationBonus ?? 0) + (this.freeGoal ? FREE_GOAL_BONUS : 0)
+    );
+  }
   private celebrationName(p: PlayerView) {
+    if (this.freeGoal) return "celebrate_dance";
     const style =
       p.custom?.celebration.style ??
       p.cast?.celebrationStyle ??
@@ -435,8 +442,10 @@ export class Footballer {
       this.lastEvent = e.id;
       if (e.playerId === p.id && e.kind !== "restart" && e.kind !== "refusal") {
         if (e.kind === "goal" && e.team && e.team !== p.team) continue;
-        if (e.kind === "goal")
-          this.celebrationTime = 3.6 + (p.cast?.celebrationBonus ?? 0);
+        if (e.kind === "goal") {
+          this.freeGoal = !!e.freeGoal;
+          this.celebrationTime = this.celebrationLength(p);
+        }
         kickEvent ||= e.kind === "pass" || e.kind === "shot";
         this.play(
           e.kind === "contact"
@@ -461,7 +470,7 @@ export class Footballer {
     if (p.throwing && !this.throwing) this.play("throw");
     if (p.celebrating && !this.celebrating) {
       this.play(this.celebrationName(p));
-      this.celebrationTime = 3.6 + (p.cast?.celebrationBonus ?? 0);
+      this.celebrationTime = this.celebrationLength(p);
     }
     if (handling) {
       const action = this.sports.save;
@@ -484,7 +493,10 @@ export class Footballer {
     if (active) active.timeScale = celebration?.speed ?? 1;
     if (this.celebrationTime > 0) {
       this.celebrationTime = Math.max(0, this.celebrationTime - dt);
-      if (this.celebrationTime === 0) active?.fadeOut(0.15);
+      if (this.celebrationTime === 0) {
+        active?.fadeOut(0.15);
+        this.freeGoal = false;
+      }
       else if (active && !active.isRunning())
         this.play(this.celebrationName(p));
     }
@@ -504,7 +516,7 @@ export class Footballer {
     this.body.position.y = slide ? -0.32 : diveProgress * 0.42;
     if (this.celebrationTime > 0) {
       const t =
-          (3.6 + (p.cast?.celebrationBonus ?? 0) - this.celebrationTime) *
+          (this.celebrationLength(p) - this.celebrationTime) *
           (celebration?.speed ?? 1),
         fade = Math.min(1, this.celebrationTime * 3, t * 4);
       this.body.position.y +=
@@ -524,6 +536,19 @@ export class Footballer {
         this.body.rotation.z = Math.sin(t * 4) * 0.2 * fade;
       if (style === "celebrate_dance")
         this.body.rotation.z = Math.sin(t * 10) * 0.18 * fade;
+      if (this.freeGoal) {
+        // Kirby free goal: a backflip pivoting on the hips, then the dance.
+        const u = THREE.MathUtils.clamp((t - 0.3) / 0.9, 0, 1);
+        if (u > 0 && u < 1) {
+          const angle = -Math.PI * 2 * THREE.MathUtils.smootherstep(u, 0, 1),
+            hip = 0.95;
+          this.body.rotation.x = angle;
+          this.body.rotation.z = 0;
+          this.body.position.y +=
+            Math.sin(Math.PI * u) * 1.1 + hip - hip * Math.cos(angle);
+          this.body.position.z = -hip * Math.sin(angle);
+        }
+      }
     }
     if (dive) this.root.rotation.y = 0;
     if (slide && p.slideDir)

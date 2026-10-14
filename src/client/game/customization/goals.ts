@@ -8,6 +8,7 @@ export interface GoalPresentation {
   volume: number;
   call: boolean;
   seconds: number;
+  freeGoal: boolean;
   team?: "home" | "away";
 }
 /** Consume monotonically identified events exactly once, even across catch-up frames. */
@@ -31,7 +32,8 @@ export class GoalEventCursor {
         sound: celebration?.sound ?? "party",
         volume: celebration?.volume ?? 0.8,
         call: scorer?.cast?.goalSound === "call",
-        seconds: celebrationSecs(scorer),
+        seconds: celebrationSecs(scorer, event.freeGoal),
+        freeGoal: !!event.freeGoal,
         team: event.team,
       });
     }

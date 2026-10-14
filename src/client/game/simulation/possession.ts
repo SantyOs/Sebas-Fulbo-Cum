@@ -50,6 +50,7 @@ export function pokeTackle(
 ): boolean {
   const carrier = state.owner;
   if (!carrier || carrier.team === tackler.team || carrier.isGK) return false;
+  if (state.freeGoal === "active" && tackler.team === "away") return false;
   if (state.stealProtect > 0 || state.dispossessed === tackler) return false;
   // DEFENDING extends a tackler's effective reach — a top defender nicks it
   // from a touch further out and times the challenge better.
@@ -173,6 +174,8 @@ export function resolvePossession(state: MatchState) {
     if (state.kickerLock > 0 && p === state.lastKicker) continue;
     // A freshly dispossessed player can't win the ball straight back.
     if (state.dispossessed === p) continue;
+    // Free run: no rival (keeper included) may touch the ball.
+    if (state.freeGoal === "active" && p.team === "away") continue;
     // Keepers have HANDS: a bigger gather radius so a slow ball at their feet
     // is claimed (not left for an attacker to steal), and enough reach to
     // pull in / parry a shot they get across to.
@@ -281,6 +284,13 @@ export function resolvePossession(state: MatchState) {
 
   if (best && best !== prev) {
     const passer = state.lastKicker;
+    const fromMate =
+      passer &&
+      passer !== best &&
+      passer.team === best.team &&
+      state.lastKickKind === "pass"
+        ? passer
+        : null;
     recordEvent(
       state,
       best.isGK && keeperMayHandle(state, best, state.lastKicker)
@@ -288,13 +298,17 @@ export function resolvePossession(state: MatchState) {
         : "contact",
       best,
       undefined,
-      passer &&
-        passer !== best &&
-        passer.team === best.team &&
-        state.lastKickKind === "pass"
-        ? passer
-        : null,
+      fromMate,
     );
+    if (
+      fromMate &&
+      best.cast?.freeGoal &&
+      best.team === "home" &&
+      state.device === "pad" &&
+      !state.practice &&
+      state.freeGoal === "armed"
+    )
+      state.freeGoal = "active";
   }
   state.owner = best;
   if (best) {
@@ -446,6 +460,12 @@ export function separatePlayers(state: MatchState) {
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const d = Math.hypot(dx, dy);
+      if (
+        state.freeGoal === "active" &&
+        a.team !== b.team &&
+        (a.cast?.freeGoal || b.cast?.freeGoal)
+      )
+        continue; // rivals let the free runner through
       const minD = a.r + b.r - 4; // slight overlap allowed for shoulder contact
       if (d > 0 && d < minD) {
         const push = (minD - d) / 2;

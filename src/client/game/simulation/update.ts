@@ -155,6 +155,12 @@ export function update(state: MatchState, dt: number) {
   updateKeeperReactions(state, dt);
   updateBall(state, dt);
   handleGoals(state);
+  if (state.freeGoal === "active") {
+    // The free run lasts while he carries the ball or his kick travels.
+    const runner = state.owner ?? state.lastKicker;
+    if (!runner?.cast?.freeGoal || runner.team !== "home" || state.device !== "pad")
+      state.freeGoal = "armed";
+  }
 
   updateAwayActive(state);
 

@@ -100,6 +100,9 @@ export interface CastTraits {
   still?: boolean;
   /** Share (0..1) of his team's passes forced to him. */
   passShare?: number;
+  /** Gamepad only: once per match a teammate's pass to him is left alone
+   *  until he scores. */
+  freeGoal?: boolean;
 }
 
 export interface SquadPlayer {

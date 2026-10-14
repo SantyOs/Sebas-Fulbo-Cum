@@ -40,6 +40,8 @@ export interface MatchEvent {
   team?: Team;
   /** Teammate whose pass this contact received. */
   fromId?: string;
+  /** Goal scored through the once-per-match gamepad free run. */
+  freeGoal?: boolean;
 }
 export interface MatchSnapshot {
   tick: number;

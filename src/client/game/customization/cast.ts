@@ -24,7 +24,11 @@ export const PLAYER_CAST: CastMember[] = [
   },
   { name: "Lilith" },
   { name: "Nelson Bedoya", phrases: ["¡Señores del jurado!"] },
-  { name: "Sebastian Londoño (C)", r: [90, 88, 88, 90, 62, 84] },
+  {
+    name: "Sebastian Londoño (C)",
+    r: [90, 88, 88, 90, 62, 84],
+    freeGoal: true,
+  },
   { name: "Monica Bernal", monkeyBubble: true, still: true, passShare: 0.4 },
 ];
 

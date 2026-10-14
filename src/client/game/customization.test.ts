@@ -315,6 +315,7 @@ it("delivers one personalized celebration per goal despite repeated snapshots", 
       volume: 0.8,
       call: false,
       seconds: 4,
+      freeGoal: false,
       team: "home",
     },
   ]);

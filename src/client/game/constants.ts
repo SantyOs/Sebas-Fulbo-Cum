@@ -161,9 +161,15 @@ export const SKIN_TONES = ["#e0ac7e", "#c98c5e", "#8d5a3b", "#f0c49a"];
 
 /** Active simulation seconds reserved for a goal cinematic. */
 export const CELEBRATION_SECS = 4;
+/** Extra seconds for the gamepad free goal's dance and backflip. */
+export const FREE_GOAL_BONUS = 3;
 export const celebrationSecs = (
   scorer?: { cast?: { celebrationBonus?: number } } | null,
-) => CELEBRATION_SECS + (scorer?.cast?.celebrationBonus ?? 0);
+  freeGoal = false,
+) =>
+  CELEBRATION_SECS +
+  (scorer?.cast?.celebrationBonus ?? 0) +
+  (freeGoal ? FREE_GOAL_BONUS : 0);
 
 // Office striker: attempts from 22 metres and aims away from the keeper.
 export const FINISHER_RANGE = M(22);

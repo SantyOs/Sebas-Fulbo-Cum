@@ -478,8 +478,14 @@ export function startCelebration(
   nextKickoff: Team,
   side: "left" | "right",
 ) {
+  const free =
+    state.freeGoal === "active" &&
+    scoringTeam === "home" &&
+    !!state.lastKicker?.cast?.freeGoal;
+  if (free) state.freeGoal = "used";
   recordEvent(state, "goal", state.lastKicker, scoringTeam);
-  state.celebration = celebrationSecs(state.lastKicker);
+  if (free) state.events[state.events.length - 1].freeGoal = true;
+  state.celebration = celebrationSecs(state.lastKicker, free);
   state.celebrateTeam = scoringTeam;
   state.pendingKickoff = nextKickoff;
   setMessage(state, msg, state.celebration);
