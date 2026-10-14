@@ -4,7 +4,7 @@ import type { BirthdayProfile } from "../../game/customization/profile";
 import type { TeamData } from "../../game/teams/types";
 
 /** Length of halftime-albion.mp3; the break lasts exactly the clip. */
-export const HALFTIME_SECONDS = 34;
+export const HALFTIME_SECONDS = 81;
 const HALFTIME_CLIP = "halftime-albion";
 
 type GameProps = { onWin: () => void; teams: TeamData[] };
@@ -249,6 +249,13 @@ const GAMES = [
   { title: "JUGADA DE PIZARRA", mission: "Memoriza la secuencia de pases y repítela.", Game: Replay },
 ];
 let lastGame = -1;
+/** Random minigame, never the same one twice in a row. */
+function nextGame() {
+  if (lastGame < 0) return (lastGame = Math.floor(Math.random() * GAMES.length));
+  let i = Math.floor(Math.random() * (GAMES.length - 1));
+  if (i >= lastGame) i++;
+  return (lastGame = i);
+}
 
 /** Half-time break: one random minigame while the Albion clip plays. */
 export function HalfTime({
@@ -260,16 +267,20 @@ export function HalfTime({
   teams: TeamData[];
   onDone: () => void;
 }) {
-  const [index] = useState(() => {
-    // Never the same one twice in a row.
-    if (lastGame < 0) return (lastGame = Math.floor(Math.random() * GAMES.length));
-    let i = Math.floor(Math.random() * (GAMES.length - 1));
-    if (i >= lastGame) i++;
-    return (lastGame = i);
-  });
+  const [index, setIndex] = useState(nextGame);
   const { title, mission, Game } = GAMES[index];
   const [left, setLeft] = useState(HALFTIME_SECONDS),
-    [won, setWon] = useState(false);
+    [won, setWon] = useState(0),
+    wins = useRef(0);
+  // A finished mission chains into another one while the clip lasts.
+  useEffect(() => {
+    if (!won) return;
+    const t = setTimeout(() => {
+      setIndex(nextGame());
+      setWon(0);
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [won]);
   useEffect(() => {
     const t = setInterval(() => setLeft((s) => s - 1), 1000);
     return () => clearInterval(t);
@@ -300,9 +311,9 @@ export function HalfTime({
       </div>
       <div className="ht-game">
         {won ? (
-          <p className="ht-won" role="status">¡MISIÓN CUMPLIDA!<small>El segundo tiempo arranca al terminar el audio</small></p>
+          <p className="ht-won" role="status">¡MISIÓN CUMPLIDA!<small>Misiones superadas: {won} · ¡Siguiente reto!</small></p>
         ) : (
-          <Game onWin={() => setWon(true)} teams={teams} />
+          <Game key={index} onWin={() => setWon(++wins.current)} teams={teams} />
         )}
       </div>
     </div>

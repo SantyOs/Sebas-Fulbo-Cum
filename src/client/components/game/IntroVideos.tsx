@@ -12,6 +12,8 @@ const VIDEOS = [
   { id: "nAv0mjeiqsU", volume: 70 },
 ];
 const LOAD_TIMEOUT = 10_000;
+/** Seconds a video may sit without advancing before it is skipped. */
+const STALL_SECONDS = 8;
 
 interface YTPlayer {
   loadVideoById(id: string): void;
@@ -20,6 +22,7 @@ interface YTPlayer {
   /** Undocumented but stable: hides captions such as "[Música]". */
   unloadModule?(name: string): void;
   playVideo(): void;
+  getCurrentTime?(): number;
   destroy(): void;
 }
 interface YTNamespace {
@@ -79,15 +82,20 @@ export function IntroVideos({
     const element = host.current.appendChild(document.createElement("div"));
     let player: YTPlayer | undefined,
       current = 0,
-      cancelled = false;
+      cancelled = false,
+      last = -1,
+      stalled = 0;
     const finish = () => {
       if (cancelled) return;
       cancelled = true;
+      window.clearInterval(watchdog);
       birthdayAudio.stop();
       done.current();
     };
     const play = (i: number) => {
       current = i;
+      last = -1;
+      stalled = 0;
       const video = VIDEOS[i];
       if (video.saturated) void birthdayAudio.saturated(profile);
       else birthdayAudio.stop();
@@ -103,6 +111,16 @@ export function IntroVideos({
     };
     // Without YouTube the game must still open.
     const timeout = window.setTimeout(finish, LOAD_TIMEOUT);
+    // A blocked autoplay, an ad or buffering never fires "ended", and a short
+    // may loop instead: either would leave the saturated Clash loop playing forever.
+    const watchdog = window.setInterval(() => {
+      const t = player?.getCurrentTime?.();
+      if (t === undefined) return;
+      if (t + 1 < last) return next();
+      stalled = t === last ? stalled + 1 : 0;
+      last = t;
+      if (stalled >= STALL_SECONDS) next();
+    }, 1000);
     loadYouTube()
       .then((YT) => {
         if (cancelled) return;
@@ -137,6 +155,7 @@ export function IntroVideos({
     return () => {
       cancelled = true;
       window.clearTimeout(timeout);
+      window.clearInterval(watchdog);
       birthdayAudio.stop();
       player?.destroy();
       element.remove();
