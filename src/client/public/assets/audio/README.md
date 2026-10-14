@@ -16,3 +16,4 @@ usuario, para este regalo; no forman parte de los recursos Quaternius.
 | goal-kirby.mp3 | kirbys-victory-dance.mp3 | Solo el gol gratis de Sebastian con mando |
 | win-perfect-victory.mp3 | perfect-victory-yagami-light.mp3 | Victoria, 1.º |
 | win-grefg.mp3 | thegrefg.mp3 | Victoria, 2.º |
+| halftime-albion.mp3 | albion-online-es-un-mmorpg-no-lineal.mp3 | Medio tiempo con minijuego (34,6 s) |

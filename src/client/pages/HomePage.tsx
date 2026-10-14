@@ -7,8 +7,10 @@ import { birthdayAudio } from "../game/customization/audio";
 import { BirthdayGoal } from "../components/game/BirthdayGoal";
 import { CpuAds } from "../components/game/CpuAds";
 import { IntroVideos } from "../components/game/IntroVideos";
+import { HalfTime } from "../components/game/HalfTime";
+import { MATCH_DISPLAY_SECS } from "../game/constants";
 import type { GoalPresentation } from "../game/customization/goals";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Settings, RotateCcw, Pause, ArrowLeft } from "lucide-react";
 import { IntroMenu } from "../components/game/IntroMenu";
 import { TeamSelect } from "../components/game/TeamSelect";
@@ -70,6 +72,8 @@ export default function HomePage() {
     [settings, setSettings] = useState(false),
     [paused, setPaused] = useState(false),
     [pauseReason, setPauseReason] = useState("");
+  // Once per match: pending → showing at 45' → done.
+  const [half, setHalf] = useState<"pending" | "showing" | "done">("pending");
   const [bindings, setBindings] = useState(loadBindings),
     [quality, setQuality] = useState<GraphicsQuality>(loadQuality);
   const home = teams[homeIndex],
@@ -83,7 +87,7 @@ export default function HomePage() {
     away,
     practice,
     quality,
-    paused: paused || settings || ads,
+    paused: paused || settings || ads || half === "showing",
     onPause: (reason) => {
       setPaused(true);
       setPauseReason(
@@ -105,6 +109,7 @@ export default function HomePage() {
     setPhase("select");
   };
   const restart = () => {
+    setHalf("pending");
     setGoal(null);
     setAds(false);
     setPaused(false);
@@ -131,6 +136,11 @@ export default function HomePage() {
     }
   };
   const finished = !practice && hud.finished;
+  useEffect(() => {
+    // Waits for a CPU ad to close: its unmount would cut the half-time audio.
+    if (!practice && !ads && half === "pending" && !hud.finished && hud.clock >= MATCH_DISPLAY_SECS / 2)
+      setHalf("showing");
+  }, [hud.clock, ads, half]);
   return (
     <main className="football-app">
       <header className="game-header" hidden={phase === "intro"}>
@@ -202,6 +212,7 @@ export default function HomePage() {
             setGoal(null);
             setHomeIndex(h);
             setAwayIndex(a);
+            setHalf("pending");
             setPhase("playing");
           }}
         />
@@ -302,6 +313,9 @@ export default function HomePage() {
           profile={birthday}
           onClose={() => setAds(false)}
         />
+      )}
+      {half === "showing" && phase === "playing" && (
+        <HalfTime profile={birthday} teams={teams} onDone={() => setHalf("done")} />
       )}
       {videos && (
         <IntroVideos profile={birthday} onDone={() => setVideos(false)} />
