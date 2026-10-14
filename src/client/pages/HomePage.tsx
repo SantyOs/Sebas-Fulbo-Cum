@@ -133,7 +133,7 @@ export default function HomePage() {
   const finished = !practice && hud.finished;
   return (
     <main className="football-app">
-      <header className="game-header">
+      <header className="game-header" hidden={phase === "intro"}>
         <div className="brand">
           <span className="brand-mark">W</span>
           <h1>
@@ -183,8 +183,7 @@ export default function HomePage() {
       {phase === "intro" && (
         <IntroMenu
           enabled={!settings && !editor && !videos}
-          recipient={birthday.recipient}
-          dedication={birthday.dedication}
+          profile={birthday}
           onCustomize={() => setEditor(true)}
           onStart={start}
           onSettings={() => setSettings(true)}
@@ -272,7 +271,7 @@ export default function HomePage() {
           )}
         </>
       )}
-      {phase !== "playing" && (
+      {phase === "select" && (
         <footer className="menu-footer">
           <span>10 SELECCIONES · FÚTBOL 3D · JUEGA A TU RITMO</span>
           <span>EDICIÓN 2026</span>

@@ -89,7 +89,9 @@ En partido (no en práctica), cuando marca el visitante, al terminar la celebrac
 
 ## Videos de inicio, goles y victoria
 
-Cada carga de la página abre `components/game/IntroVideos.tsx`: tras **Pulsa para empezar** (el navegador exige un clic para reproducir con sonido) se ven tres videos de YouTube incrustados, en orden y sin opción de saltar. Los dos primeros suenan al 25 %; el tercero al 100 % con `clash-saturado.mp3` en bucle, amplificado y distorsionado con Web Audio (YouTube no permite subir su volumen por encima del 100 %). Requiere internet: si YouTube no carga en 10 s o un video no se puede incrustar, se pasa al siguiente o al menú.
+Cada carga de la página abre `components/game/IntroVideos.tsx`: una pantalla **PRESS START** (Enter, Start del mando o clic; el navegador exige ese gesto para el sonido) y después tres videos de YouTube sin opción de saltar: los dos shorts de Clash Royale (el primero al 25 %; el segundo al 100 % con `clash-saturado.mp3` en bucle, amplificado y distorsionado con Web Audio) y la intro original de Mundial Ronaldinho Soccer 64 al 70 %, recortada para ocultar el título, el logo y los subtítulos de YouTube. Pulsar Start en el mando no cuenta como gesto del navegador: si el audio queda bloqueado aparece «SIN SONIDO · PULSA ENTER O HAZ CLIC». Los videos requieren internet; si YouTube no carga en 10 s o uno no se puede incrustar, se pasa al siguiente o al menú.
+
+La pantalla de título (`IntroMenu.tsx`, `RetroLogo.tsx`) imita una portada de fútbol de consola de finales de los 90: estadio nocturno, foto de Sebastian, logo «MUNDIAL {nombre} SOCCER 26» y «Press Start». Solo Enter o Start abren el menú (Partido amistoso, Entrenamiento, Editar jugadores, Opciones); Esc/B vuelve al título.
 
 Cada gol del equipo local suena con uno de seis clips de victoria al azar. Al ganar un partido suenan `win-perfect-victory.mp3` y después `win-grefg.mp3`.
 

@@ -294,6 +294,54 @@ export class BirthdayAudio {
       loop: true,
     });
   }
+  get running() {
+    return this.context?.state === "running";
+  }
+  /** One synthesized note or noise burst, tracked so stop() cuts it. */
+  private note(
+    ctx: AudioContext,
+    time: number,
+    length: number,
+    level: number,
+    wave: OscillatorType | "noise",
+    from = 0,
+    to = from,
+  ) {
+    let source: AudioScheduledSourceNode;
+    if (wave === "noise") {
+      const buffer = ctx.createBuffer(1, ctx.sampleRate * length, ctx.sampleRate),
+        data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      source = Object.assign(ctx.createBufferSource(), { buffer });
+    } else {
+      const osc = ctx.createOscillator();
+      osc.type = wave;
+      osc.frequency.setValueAtTime(from, time);
+      if (to !== from) osc.frequency.exponentialRampToValueAtTime(to, time + length);
+      source = osc;
+    }
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(level, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + length);
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    this.nodes.add(source);
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+      this.nodes.delete(source);
+    };
+    source.start(time);
+    source.stop(time + length);
+  }
+  /** Short menu blip: a move tick or a confirm chirp. */
+  blip(profile: BirthdayProfile, confirm = false) {
+    const ctx = this.context;
+    if (!ctx || ctx.state !== "running" || profile.volume <= 0) return;
+    const t = ctx.currentTime;
+    this.note(ctx, t, 0.06, 0.06 * profile.volume, "square", confirm ? 660 : 880);
+    if (confirm) this.note(ctx, t + 0.07, 0.12, 0.06 * profile.volume, "square", 1320);
+  }
   async preview(custom: PlayerCustomization, profile: BirthdayProfile) {
     await this.unlock();
     await this.play(

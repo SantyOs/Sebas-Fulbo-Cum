@@ -70,3 +70,34 @@ export function useMenuNavigation(
     };
   }, [enabled]);
 }
+/** Title screens: only Enter or the gamepad Start button (standard index 9). */
+export function useStartButton(enabled: boolean, onStart: () => void) {
+  const callback = useRef(onStart);
+  callback.current = onStart;
+  useEffect(() => {
+    if (!enabled) return;
+    const key = (e: KeyboardEvent) => {
+      if (e.code !== "Enter" && e.code !== "NumpadEnter") return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      callback.current();
+    };
+    window.addEventListener("keydown", key, true);
+    let raf = 0,
+      held: boolean | undefined;
+    const poll = () => {
+      const pressed = Array.from(navigator.getGamepads?.() ?? []).some(
+        (p) => p?.connected && p.buttons[9]?.pressed,
+      );
+      // A Start held across the previous screen must be released first.
+      if (held === false && pressed) callback.current();
+      held = pressed;
+      raf = requestAnimationFrame(poll);
+    };
+    raf = requestAnimationFrame(poll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("keydown", key, true);
+    };
+  }, [enabled]);
+}

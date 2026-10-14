@@ -6,6 +6,9 @@
   color: #eaf0f4;
   font-family: var(--font-body);
 }
+.game-header[hidden] {
+  display: none;
+}
 .game-header {
   height: 64px;
   flex-shrink: 0;
@@ -90,38 +93,6 @@
   margin: 0;
   letter-spacing: 0.5px;
 }
-.intro-screen {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  max-width: 1500px;
-  width: 100%;
-  margin: auto;
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  min-height: 650px;
-}
-.intro-copy {
-  padding: 65px 35px 45px 8vw;
-  z-index: 1;
-}
-.intro-copy h2 {
-  font-size: clamp(36px, 4vw, 66px);
-  line-height: 1;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.intro-copy h2 em {
-  font-style: normal;
-  color: #c6ff2e;
-}
-.intro-description {
-  color: #9eb2c3;
-  max-width: 385px;
-  font-size: 15px;
-  line-height: 1.7;
-  margin: 22px 0 30px;
-}
 .mode-buttons {
   display: flex;
   flex-direction: column;
@@ -161,99 +132,6 @@
 .mode-buttons b {
   font-size: 24px;
   font-weight: 400;
-}
-.menu-help {
-  font-size: 11px;
-  color: #92a6b6;
-  margin: 24px 0 0;
-}
-.intro-art {
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse at 65% 45%, #215b52 0, transparent 65%),
-    linear-gradient(150deg, transparent, #102e39);
-  mask-image: linear-gradient(to right, transparent, #000 20%);
-}
-.season-number {
-  position: absolute;
-  top: 40px;
-  right: 5%;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(260px, 40vw, 600px);
-  line-height: 1;
-  color: #d5e9d9;
-  opacity: 0.075;
-  letter-spacing: -20px;
-  transform: skew(-8deg);
-}
-.pitch-drawing {
-  width: 85%;
-  height: 63%;
-  border: 2px solid #95d2ad55;
-  position: absolute;
-  left: 7%;
-  top: 23%;
-  transform: perspective(600px) rotateX(40deg) rotateZ(-18deg);
-  background: repeating-linear-gradient(
-    90deg,
-    #33785033 0,
-    #33785033 9%,
-    #174c3533 9%,
-    #174c3533 18%
-  );
-  box-shadow:
-    0 0 100px #2b987122,
-    inset 0 0 70px #16463666;
-}
-.pitch-half {
-  position: absolute;
-  left: 50%;
-  height: 100%;
-  border-left: 2px solid #95d2ad55;
-}
-.pitch-circle {
-  position: absolute;
-  width: 25%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 2px solid #95d2ad55;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.pitch-box {
-  position: absolute;
-  top: 20%;
-  width: 17%;
-  height: 60%;
-  border: 2px solid #95d2ad55;
-}
-.pitch-box.left {
-  left: -2px;
-}
-.pitch-box.right {
-  right: -2px;
-}
-.edition-label {
-  position: absolute;
-  right: 25px;
-  bottom: 55px;
-  font-size: 10px;
-  letter-spacing: 4px;
-  color: #9bbfaa;
-  writing-mode: vertical-rl;
-}
-.stadium-lights {
-  position: absolute;
-  width: 100%;
-  height: 6px;
-  top: 25%;
-  background: linear-gradient(90deg, transparent, #f2fff3, transparent);
-  filter: blur(5px);
-  transform: rotate(-18deg);
-  opacity: 0.45;
 }
 .menu-footer {
   padding: 18px 32px;
@@ -697,15 +575,6 @@
   .brand-subtitle {
     display: none;
   }
-  .intro-copy {
-    padding: 45px 20px 35px 5vw;
-  }
-  .intro-copy h2 {
-    font-size: 44px;
-  }
-  .intro-screen {
-    min-height: 560px;
-  }
   .selection-screen {
     padding: 25px;
   }
@@ -720,19 +589,6 @@
   }
 }
 @media (max-width: 640px) {
-  .intro-screen {
-    grid-template-columns: 1fr;
-    min-height: unset;
-  }
-  .intro-copy {
-    padding: 40px 25px;
-  }
-  .intro-art {
-    display: none;
-  }
-  .intro-copy h2 {
-    font-size: 42px;
-  }
   .game-header {
     height: 56px;
     padding: 0 14px;
@@ -1596,16 +1452,311 @@
   position: absolute;
   inset: 0;
 }
+.intro-videos-player {
+  overflow: hidden;
+}
+/* Oversized and centred so YouTube's title bar and logo fall outside. */
 .intro-videos-player iframe {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  left: -6%;
+  top: -12%;
+  width: 112%;
+  height: 124%;
   border: 0;
 }
-.intro-videos-count {
-  position: absolute;
-  right: 16px;
-  bottom: 12px;
+
+/* ---- Retro title, intro and boot (late-90s console style) ---- */
+.retro-boot,
+.retro-title {
+  --pixel: "Press Start 2P", monospace;
+  --gold: #ffd21f;
+  font-family: var(--pixel);
+}
+.retro-boot {
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+  background: none;
+  border: 0;
   color: #fff;
-  font-family: var(--font-heading);
-  opacity: 0.7;
+  font-size: clamp(16px, 3vw, 28px);
+  cursor: pointer;
+}
+.retro-boot small {
+  font-size: 10px;
+  color: #8a93a8;
+}
+.retro-blink {
+  animation: retro-blink 1s steps(2, start) infinite;
+}
+.retro-muted {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 8px 12px;
+  background: #000c;
+  color: #ffd21f;
+  font: 10px "Press Start 2P", monospace;
+  white-space: nowrap;
+}
+
+/* Title screen: night stadium backdrop. */
+.retro-title {
+  position: relative;
+  flex: 1;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 1fr auto auto auto;
+  justify-items: center;
+  padding: 3vh 16px 2vh;
+  background: linear-gradient(#020414 0, #0a1236 38%, #1a2b5c 52%);
+  color: #fff;
+}
+.retro-stadium,
+.retro-stadium > span {
+  position: absolute;
+  inset: 0;
+}
+.retro-tower {
+  background: radial-gradient(circle at 92% 8%, #fff 0, #cfe6ff 2%, #7fb2ff55 9%, transparent 26%);
+}
+.retro-tower.left {
+  transform: scaleX(-1);
+  opacity: 0.55;
+}
+.retro-stadium .retro-crowd {
+  top: 50%;
+  bottom: 26%;
+  background:
+    radial-gradient(circle, #f4e3c3 1px, transparent 1.6px) 0 0 / 7px 6px,
+    radial-gradient(circle, #e2483d 1px, transparent 1.6px) 3px 3px / 9px 7px,
+    radial-gradient(circle, #ffd21f 1px, transparent 1.6px) 5px 1px / 11px 8px,
+    linear-gradient(#1b2347, #3a3550);
+  mask-image: linear-gradient(transparent, #000 30%);
+  opacity: 0.75;
+}
+.retro-stadium .retro-pitch {
+  top: 74%;
+  background: repeating-linear-gradient(90deg, #2f9a2e 0 8%, #258425 8% 16%);
+  box-shadow: inset 0 6px 0 #e9f7e9, inset 0 30px 40px #0006;
+}
+.retro-cover {
+  position: absolute;
+  left: max(0px, 4vw);
+  bottom: 0;
+  bottom: 9vh;
+  height: 74%;
+  max-width: 30vw;
+  object-fit: cover;
+  object-position: top;
+  border: 5px solid #fff;
+  outline: 3px solid #0b2a8f;
+  box-shadow: 10px 10px 0 #0008;
+  filter: saturate(1.5) contrast(1.15);
+  transform: rotate(-4deg);
+}
+
+/* Logo */
+.retro-logo {
+  position: relative;
+  align-self: center;
+  display: grid;
+  justify-items: start;
+  padding: clamp(30px, 6vw, 90px) clamp(110px, 17vw, 250px) 0 clamp(30px, 6vw, 90px);
+  font-style: italic;
+  line-height: 0.95;
+  transform: rotate(-6deg);
+  z-index: 1;
+}
+.retro-logo-fire {
+  position: absolute;
+  left: -10%;
+  right: 5%;
+  top: 22%;
+  height: 58%;
+  background: linear-gradient(90deg, transparent, #ff2d00 25%, #ff8a00 55%, #ffe46a 80%, transparent);
+  border-radius: 50%;
+  filter: blur(10px);
+  opacity: 0.9;
+  animation: retro-flicker 0.18s steps(2) infinite alternate;
+}
+.retro-logo-ball {
+  position: absolute;
+  left: 0;
+  top: 30%;
+  width: clamp(42px, 7vw, 96px);
+  animation: football-spin 1.2s linear infinite;
+}
+.retro-logo-mundial,
+.retro-logo-soccer,
+.retro-logo-name {
+  position: relative;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  -webkit-text-stroke: 2px #0b2a8f;
+  paint-order: stroke fill;
+}
+.retro-logo-mundial {
+  margin-left: 18%;
+  font-size: clamp(22px, 4vw, 48px);
+  color: #ffd21f;
+  text-shadow: 3px 3px 0 #0b2a8f;
+}
+.retro-logo-name {
+  background: linear-gradient(#fff 30%, #9fb3d9 55%, #fff 70%, #7c8fb8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(4px 4px 0 #0b2a8f) drop-shadow(0 0 2px #000);
+}
+.retro-logo-soccer {
+  margin-left: 6%;
+  font-size: clamp(30px, 6vw, 80px);
+  color: #e8ecf5;
+  text-shadow: 4px 4px 0 #0b2a8f;
+}
+.retro-logo-number {
+  position: absolute;
+  right: 0;
+  top: -6%;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: clamp(70px, 15vw, 210px);
+  color: #ffd21f;
+  text-shadow:
+    1px 1px 0 #c98a00, 2px 2px 0 #b07400, 3px 3px 0 #965f00, 4px 4px 0 #7a4b00,
+    6px 6px 0 #5a3500, 0 0 26px #ffb30088;
+  -webkit-text-stroke: 1px #fff6b0;
+}
+
+/* Press start pill and menu */
+.retro-press,
+.retro-menu button {
+  position: relative;
+  z-index: 1;
+  border: 3px solid #e7ecff;
+  border-radius: 999px;
+  background: linear-gradient(#5f8cff, #1d3fb8 55%, #142b86);
+  box-shadow: 0 0 0 3px #0a1a5c, 0 6px 0 #0a1a5c;
+}
+.retro-press {
+  margin: 1vh 0 2vh;
+  padding: 14px 36px;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(28px, 4vw, 46px);
+  font-style: italic;
+  font-weight: 700;
+  color: #ffd21f;
+  text-shadow: 3px 3px 0 #7a1d00;
+}
+.retro-menu {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  width: min(460px, 100%);
+  margin: 1vh 0 1.5vh;
+}
+.retro-menu button {
+  display: grid;
+  gap: 6px;
+  padding: 10px 22px 10px 56px;
+  text-align: left;
+  color: #fff;
+  font-family: inherit;
+  cursor: pointer;
+}
+.retro-menu button strong {
+  font-size: clamp(11px, 1.6vw, 15px);
+  font-weight: 400;
+}
+.retro-menu button small {
+  font-size: 8px;
+  color: #b9c8ff;
+}
+.retro-menu button.selected {
+  background: linear-gradient(#ffe36b, #ffb800 55%, #d98a00);
+  border-color: #fff;
+}
+.retro-menu button.selected strong,
+.retro-menu button.selected small {
+  color: #3a1600;
+}
+.retro-menu button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+.retro-cursor {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 28px;
+  margin-top: -14px;
+  animation: football-spin 0.8s linear infinite;
+}
+.retro-help {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 8px;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+}
+.retro-ticker {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  overflow: hidden;
+  background: #000a;
+  border-block: 2px solid #ffd21f;
+  font-size: 10px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.retro-ticker span {
+  display: inline-block;
+  padding-left: 100%;
+  color: #ffd21f;
+  animation: retro-ticker 22s linear infinite;
+}
+.retro-legal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-top: 1.2vh;
+  font-size: clamp(8px, 1.2vw, 12px);
+  line-height: 1.8;
+  text-align: center;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+}
+.retro-legal p {
+  margin: 0;
+}
+.retro-legal span {
+  font-size: 22px;
+}
+
+@keyframes retro-blink { to { visibility: hidden; } }
+@keyframes retro-flicker { to { opacity: 0.7; transform: scaleX(1.03); } }
+@keyframes retro-ticker { to { transform: translateX(-100%); } }
+@media (max-width: 640px) {
+  .retro-cover {
+    opacity: 0.35;
+    max-width: 60vw;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .retro-blink,
+  .retro-logo-fire,
+  .retro-ticker span,
+  .retro-logo-ball,
+  .retro-cursor {
+    animation: none;
+  }
 }

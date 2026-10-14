@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { birthdayAudio } from "../../game/customization/audio";
 import type { BirthdayProfile } from "../../game/customization/profile";
+import { useStartButton } from "../../hooks/useMenuNavigation";
 
-/** Shown on every page load, in this order, with no skip. The third plays at
- *  full volume over a saturated Clash Royale loop; the others stay quieter. */
+/** Every page load shows these in order with no skip: the two Clash Royale
+ *  shorts (the second at full volume over a saturated loop), then the
+ *  original Mundial Ronaldinho Soccer 64 intro, clean and clear. */
 const VIDEOS = [
-  { id: "nAv0mjeiqsU", volume: 25 },
   { id: "QK91AMJbnrM", volume: 25 },
   { id: "WC07z8h5oLA", volume: 100, saturated: true },
+  { id: "nAv0mjeiqsU", volume: 70 },
 ];
 const LOAD_TIMEOUT = 10_000;
 
@@ -15,6 +17,8 @@ interface YTPlayer {
   loadVideoById(id: string): void;
   setVolume(volume: number): void;
   unMute(): void;
+  /** Undocumented but stable: hides captions such as "[Música]". */
+  unloadModule?(name: string): void;
   playVideo(): void;
   destroy(): void;
 }
@@ -64,13 +68,13 @@ export function IntroVideos({
   profile: BirthdayProfile;
   onDone: () => void;
 }) {
-  const [started, setStarted] = useState(false),
-    [index, setIndex] = useState(0);
+  const [phase, setPhase] = useState<"boot" | "videos">("boot"),
+    [muted, setMuted] = useState(false);
   const host = useRef<HTMLDivElement>(null),
     done = useRef(onDone);
   done.current = onDone;
   useEffect(() => {
-    if (!started || !host.current) return;
+    if (phase !== "videos" || !host.current) return;
     // YouTube replaces this element with its iframe, so React never owns it.
     const element = host.current.appendChild(document.createElement("div"));
     let player: YTPlayer | undefined,
@@ -84,12 +88,12 @@ export function IntroVideos({
     };
     const play = (i: number) => {
       current = i;
-      setIndex(i);
       const video = VIDEOS[i];
       if (video.saturated) void birthdayAudio.saturated(profile);
       else birthdayAudio.stop();
       player!.setVolume(video.volume);
       player!.unMute();
+      player!.unloadModule?.("captions");
     };
     // Ended or unplayable (embedding disabled, offline): go to the next one.
     const next = () => {
@@ -114,6 +118,7 @@ export function IntroVideos({
             playsinline: 1,
             rel: 0,
             iv_load_policy: 3,
+            cc_load_policy: 0,
           },
           events: {
             onReady: () => {
@@ -136,30 +141,55 @@ export function IntroVideos({
       player?.destroy();
       element.remove();
     };
-  }, [started]);
+  }, [phase]);
+  // A gamepad press is not a browser gesture: offer a key/click to unmute.
+  useEffect(() => {
+    if (!muted) return;
+    const unlock = () =>
+      void birthdayAudio
+        .unlock()
+        .then(() => setMuted(!birthdayAudio.running))
+        .catch(() => {});
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [muted]);
+  const booting = useRef(false);
+  const boot = () => {
+    if (booting.current) return;
+    booting.current = true;
+    // Without a gesture (gamepad) resume() stays pending: don't wait for it.
+    void Promise.race([
+      birthdayAudio.unlock().catch(() => {}),
+      new Promise((r) => setTimeout(r, 400)),
+    ]).then(() => {
+      setMuted(!birthdayAudio.running);
+      setPhase("videos");
+    });
+  };
+  useStartButton(phase === "boot", boot);
   return (
-    <div className="intro-videos" role="dialog" aria-label="Videos de inicio">
-      {started ? (
+    <div className="intro-videos" role="dialog" aria-label="Intro del juego">
+      {phase === "boot" && (
+        <button className="retro-boot" autoFocus onClick={boot}>
+          <span className="retro-blink">PRESS START</span>
+          <small>ENTER · START</small>
+        </button>
+      )}
+      {phase === "videos" && (
         <>
           <div className="intro-videos-player" ref={host} />
           {/* Blocks clicks on the player: no pausing or skipping. */}
           <div className="intro-videos-shield" aria-hidden="true" />
-          <span className="intro-videos-count" role="status">
-            {index + 1} / {VIDEOS.length}
-          </span>
         </>
-      ) : (
-        <button
-          className="primary-button"
-          autoFocus
-          onClick={() => {
-            // The click is the gesture browsers need before playing sound.
-            void birthdayAudio.unlock().catch(() => {});
-            setStarted(true);
-          }}
-        >
-          ▶ PULSA PARA EMPEZAR
-        </button>
+      )}
+      {muted && phase !== "boot" && (
+        <span className="retro-muted" role="status">
+          SIN SONIDO · PULSA ENTER O HAZ CLIC
+        </span>
       )}
     </div>
   );
