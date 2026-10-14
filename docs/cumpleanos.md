@@ -23,7 +23,7 @@ El navegador puede requerir interacción para habilitar audio. Pulsa **Activar s
 
 ## Audios y traslado del regalo
 
-Admite MP3, WAV, OGG o WebM que el navegador pueda decodificar: hasta cuatro clips, 1 MB y 30 segundos por archivo, con un límite total aproximado de 2,8 millones de caracteres codificados. Durante un gol suenan como máximo ocho segundos. Las fanfarrias y la ovación incluidas son sintetizadas por el juego, sin descargas de audio externas.
+Admite MP3, WAV, OGG o WebM que el navegador pueda decodificar: hasta cuatro clips, 1 MB y 30 segundos por archivo, con un límite total aproximado de 2,8 millones de caracteres codificados. Durante un gol suenan como máximo ocho segundos. Las fanfarrias y la ovación del taller son sintetizadas; los clips de gol, victoria y videos de inicio están en `public/assets/audio/` (ver su README).
 
 Todo se guarda en `localStorage` bajo `wc2026.birthday.v1`. Los audios se incluyen como datos en el perfil, sin servidor. Si no hay espacio, el editor informa del error y permite exportar o eliminar clips.
 
@@ -86,3 +86,11 @@ Las pruebas automatizadas cubren rechazo de pases, conservación de procedencia/
 ## Anuncios tras gol de la CPU
 
 En partido (no en práctica), cuando marca el visitante, al terminar la celebración aparece `components/game/CpuAds.tsx` a pantalla completa y el partido queda en pausa. Rota seis anuncios con las imágenes de `public/assets/ads/` y un jingle sintetizado. Dura 7 s y luego solo se cierra con la X. «Omitir anuncio» abre un formulario de pago: sus campos no se leen, no se guardan ni se envían, y cualquier botón lo cierra y reinicia los 7 s.
+
+## Videos de inicio, goles y victoria
+
+Cada carga de la página abre `components/game/IntroVideos.tsx`: tras **Pulsa para empezar** (el navegador exige un clic para reproducir con sonido) se ven tres videos de YouTube incrustados, en orden y sin opción de saltar. Los dos primeros suenan al 25 %; el tercero al 100 % con `clash-saturado.mp3` en bucle, amplificado y distorsionado con Web Audio (YouTube no permite subir su volumen por encima del 100 %). Requiere internet: si YouTube no carga en 10 s o un video no se puede incrustar, se pasa al siguiente o al menú.
+
+Cada gol del equipo local suena con uno de seis clips de victoria al azar. Al ganar un partido suenan `win-perfect-victory.mp3` y después `win-grefg.mp3`.
+
+**Gol gratis con mando:** una vez por partido (no en práctica), jugando con mando, cuando un compañero le pasa a Sebastian ningún rival puede presionarlo, robarle, bloquearlo ni tocar el balón (portero incluido) mientras él lo lleve o viaje su tiro. Si pierde el balón sin marcar, la regla sigue disponible; al marcar se consume. Ese gol suena con Kirby y su festejo dura 3 s más: mortal hacia atrás y baile. Prueba: `cast.test.ts`.

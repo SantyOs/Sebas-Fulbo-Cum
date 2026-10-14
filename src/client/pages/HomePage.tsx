@@ -6,6 +6,7 @@ import {
 import { birthdayAudio } from "../game/customization/audio";
 import { BirthdayGoal } from "../components/game/BirthdayGoal";
 import { CpuAds } from "../components/game/CpuAds";
+import { IntroVideos } from "../components/game/IntroVideos";
 import type { GoalPresentation } from "../game/customization/goals";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { Settings, RotateCcw, Pause, ArrowLeft } from "lucide-react";
@@ -40,7 +41,9 @@ export default function HomePage() {
   const [birthday, setBirthday] = useState(() => loadProfile(TEAMS)),
     [editor, setEditor] = useState(false),
     [goal, setGoal] = useState<GoalPresentation | null>(null),
-    [ads, setAds] = useState(false);
+    [ads, setAds] = useState(false),
+    // Every page load opens on the intro videos.
+    [videos, setVideos] = useState(true);
   const [storageNotice, setStorageNotice] = useState("");
   // Presentation sliders must never reconstruct an ongoing match.
   const teams = useMemo(
@@ -179,7 +182,7 @@ export default function HomePage() {
       </header>
       {phase === "intro" && (
         <IntroMenu
-          enabled={!settings && !editor}
+          enabled={!settings && !editor && !videos}
           recipient={birthday.recipient}
           dedication={birthday.dedication}
           onCustomize={() => setEditor(true)}
@@ -300,6 +303,9 @@ export default function HomePage() {
           profile={birthday}
           onClose={() => setAds(false)}
         />
+      )}
+      {videos && (
+        <IntroVideos profile={birthday} onDone={() => setVideos(false)} />
       )}
       {settings && (
         <SettingsModal
