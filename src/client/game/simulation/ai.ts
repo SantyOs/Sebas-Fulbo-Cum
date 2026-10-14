@@ -717,6 +717,7 @@ export function updateAwayCarrier(
   // favourite is also fed the ball unpressured.
   const favorite = castPassTarget(
     state,
+    p,
     state.awayPlayers.filter((m) => m !== p && !m.isGK),
   );
   const finisherOpen = state.awayPlayers.some(

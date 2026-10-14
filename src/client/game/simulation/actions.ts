@@ -776,6 +776,8 @@ export function heldDir(state: MatchState, kicker: PlayerEntity): Vec {
   return { x: dx / l, y: dy / l };
 }
 
+const PAD_FAVORITE_RANGE = M(20);
+
 export function pickPassTarget(
   state: MatchState,
   kicker: PlayerEntity,
@@ -786,7 +788,7 @@ export function pickPassTarget(
     kicker.team === "home" ? state.homePlayers : state.awayPlayers
   ).filter((p) => p !== kicker && !(opts.through && p.isGK));
   const opps = kicker.team === "home" ? state.awayPlayers : state.homePlayers;
-  const favorite = castPassTarget(state, mates);
+  const favorite = castPassTarget(state, kicker, mates);
   if (favorite) return favorite;
 
   let best: PlayerEntity | null = null;
@@ -843,13 +845,23 @@ export function pickPassTarget(
   return best;
 }
 
-/** A cast player with `passShare` steals that share of his team's passes. */
+/** A cast player with `passShare` steals that share of his team's passes.
+ *  With a gamepad the user's favourite is only forced when near and open. */
 export function castPassTarget(
   state: MatchState,
+  kicker: PlayerEntity,
   mates: readonly PlayerEntity[],
 ): PlayerEntity | null {
   const fav = mates.find((m) => m.cast?.passShare);
-  return fav && state.random() < fav.cast!.passShare! ? fav : null;
+  if (!fav) return null;
+  if (state.device === "pad" && fav.team === "home") {
+    if (dist(kicker, fav) > PAD_FAVORITE_RANGE) return null;
+    const opps = state.awayPlayers.filter(
+      (o) => !o.isGK && dist(o, kicker) >= 34,
+    );
+    if (opps.some((o) => distToSegment(o, kicker, fav) - o.r < 26)) return null;
+  }
+  return state.random() < fav.cast!.passShare! ? fav : null;
 }
 
 export function passLaneEnd(

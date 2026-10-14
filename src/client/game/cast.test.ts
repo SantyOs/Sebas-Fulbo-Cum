@@ -8,7 +8,8 @@ import { TEAMS } from "./teams";
 import { updateBall } from "./simulation/physics";
 import { recordEvent } from "./simulation/events";
 import { updateAwayCarrier } from "./simulation/ai";
-import { FIELD_H } from "./constants";
+import { FIELD_H, M } from "./constants";
+import { castPassTarget } from "./simulation/actions";
 import { startCelebration } from "./simulation/rules";
 
 const castSim = () => {
@@ -39,6 +40,25 @@ describe("office cast", () => {
     s.lastKicker = find({ state: s } as MatchSimulation, "Yenny");
     startCelebration(s, "away", "GOL", "home", "left");
     expect(s.celebration).toBe(6);
+  });
+  it("with a pad only forces passes to Monica when she is near and open", () => {
+    const sim = castSim(),
+      s = sim.state,
+      monica = find(sim, "Monica"),
+      kicker = find(sim, "Sebastian"),
+      mates = s.homePlayers.filter((p) => p !== kicker);
+    sim.setInputDevice("pad");
+    for (const p of s.awayPlayers) Object.assign(p, { x: 100, y: 100 });
+    Object.assign(kicker, { x: monica.x - M(40), y: monica.y });
+    const tries = (n = 200) =>
+      Array.from({ length: n }, () => castPassTarget(s, kicker, mates)).filter(
+        Boolean,
+      ).length;
+    expect(tries()).toBe(0);
+    Object.assign(kicker, { x: monica.x - M(10) });
+    expect(tries()).toBeGreaterThan(40);
+    Object.assign(s.awayPlayers[3], { x: monica.x - M(5), y: monica.y });
+    expect(tries()).toBe(0);
   });
   it("lets Yenny shoot from outside the box toward the open corner", () => {
     const s = castSim().state;
