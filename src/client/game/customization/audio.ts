@@ -1,4 +1,25 @@
 import type { BirthdayProfile, PlayerCustomization } from "./profile";
+/** Bundled clips in public/assets/audio (see its README for sources). */
+export const GOAL_CLIPS = [
+  "goal-victory",
+  "goal-happy-wheels",
+  "goal-fortnite",
+  "goal-pvz",
+  "goal-jojo",
+  "goal-victory-wav",
+] as const;
+/** Reserved for the gamepad free goal and its backflip. */
+export const FREE_GOAL_CLIP = "goal-kirby";
+export const WIN_CLIPS = ["win-perfect-victory", "win-grefg"] as const;
+/** Soft clipping curve; `drive` 1 is near-linear, higher crushes the peaks. */
+export function saturationCurve(drive: number, size = 1024) {
+  const curve = new Float32Array(size);
+  for (let i = 0; i < size; i++) {
+    const x = (i / (size - 1)) * 2 - 1;
+    curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
+  }
+  return curve;
+}
 /** Presentation-only audio, unlocked by a user gesture and stopped on pause/exit. */
 export class BirthdayAudio {
   private context?: AudioContext;
@@ -178,6 +199,100 @@ export class BirthdayAudio {
       source.start(time);
       source.stop(time + 0.19);
     }
+  }
+  private clips = new Map<string, Promise<AudioBuffer>>();
+  private clip(ctx: AudioContext, name: string) {
+    let clip = this.clips.get(name);
+    if (!clip) {
+      clip = fetch(`${import.meta.env.BASE_URL}assets/audio/${name}.mp3`)
+        .then((r) => {
+          if (!r.ok) throw new Error(`Audio ${name}: ${r.status}`);
+          return r.arrayBuffer();
+        })
+        .then((b) => ctx.decodeAudioData(b));
+      this.clips.set(name, clip);
+      clip.catch(() => this.clips.delete(name));
+    }
+    return clip;
+  }
+  /** Bundled clips back to back. `drive` saturates them; `loop` repeats the
+   *  last one until stop(). A missing clip never interrupts the game. */
+  async playClips(
+    names: readonly string[],
+    profile: BirthdayProfile,
+    { level = 0.8, seconds = Infinity, drive = 0, loop = false } = {},
+  ) {
+    this.stop();
+    const ctx = this.context;
+    if (!ctx || ctx.state !== "running" || profile.volume <= 0) return;
+    const token = this.generation;
+    let buffers: AudioBuffer[];
+    try {
+      buffers = await Promise.all(names.map((n) => this.clip(ctx, n)));
+    } catch {
+      return;
+    }
+    if (token !== this.generation) return;
+    let start = ctx.currentTime;
+    const end = start + seconds;
+    buffers.forEach((buffer, i) => {
+      if (start >= end) return;
+      const source = ctx.createBufferSource(),
+        gain = ctx.createGain(),
+        repeat = loop && i === buffers.length - 1,
+        until = Math.min(end, repeat ? Infinity : start + buffer.duration);
+      source.buffer = buffer;
+      source.loop = repeat;
+      const value = level * profile.volume;
+      gain.gain.setValueAtTime(value, start);
+      if (Number.isFinite(until) && until < start + buffer.duration) {
+        gain.gain.setValueAtTime(value, Math.max(start, until - 0.4));
+        gain.gain.linearRampToValueAtTime(0, until);
+      }
+      let input: AudioNode = gain;
+      const shaper = drive > 0 ? ctx.createWaveShaper() : null;
+      if (shaper) {
+        // Overdrive before the shaper, then rely on the output clipping too.
+        const pre = ctx.createGain();
+        pre.gain.value = drive;
+        shaper.curve = saturationCurve(drive);
+        shaper.oversample = "none";
+        source.connect(pre);
+        pre.connect(shaper);
+        shaper.connect(gain);
+        input = pre;
+      } else source.connect(gain);
+      gain.connect(ctx.destination);
+      this.nodes.add(source);
+      source.onended = () => {
+        source.disconnect();
+        input.disconnect();
+        shaper?.disconnect();
+        gain.disconnect();
+        this.nodes.delete(source);
+      };
+      source.start(start);
+      if (Number.isFinite(until)) source.stop(until);
+      start += buffer.duration;
+    });
+  }
+  /** Random victory jingle for a home goal; Kirby only for the free goal. */
+  goal(freeGoal: boolean, profile: BirthdayProfile) {
+    const name = freeGoal
+      ? FREE_GOAL_CLIP
+      : GOAL_CLIPS[Math.floor(Math.random() * GOAL_CLIPS.length)];
+    return this.playClips([name], profile, { seconds: 8 });
+  }
+  win(profile: BirthdayProfile) {
+    return this.playClips(WIN_CLIPS, profile, { level: 1 });
+  }
+  /** Intro third video: the Clash Royale clip, overdriven, on a loop. */
+  saturated(profile: BirthdayProfile) {
+    return this.playClips(["clash-saturado"], profile, {
+      level: 3,
+      drive: 12,
+      loop: true,
+    });
   }
   async preview(custom: PlayerCustomization, profile: BirthdayProfile) {
     await this.unlock();

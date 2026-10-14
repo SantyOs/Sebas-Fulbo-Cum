@@ -44,6 +44,7 @@ export class PitchKickGame {
   private hudElapsed = 0;
   private goalCursor = new GoalEventCursor();
   private castLines = new CastLineCursor();
+  private won = false;
   private unlockAudio = () => {
     void birthdayAudio.unlock().catch(() => {});
   };
@@ -139,9 +140,16 @@ export class PitchKickGame {
       if (profile && goal.call) {
         birthdayAudio.stop();
         void birthdayAudio.playCall(true, profile);
-      } else if (profile)
+      } else if (profile && goal.team === "home")
+        void birthdayAudio.goal(goal.freeGoal, profile);
+      else if (profile)
         void birthdayAudio.play(goal.sound, goal.volume, profile);
       this.options.onGoal?.(goal);
+    }
+    const { hud } = this.current;
+    if (!this.won && hud.finished && hud.homeScore > hud.awayScore) {
+      this.won = true;
+      if (this.options.birthday) void birthdayAudio.win(this.options.birthday);
     }
     for (const line of this.castLines.consume(this.current)) {
       if (line.text)
