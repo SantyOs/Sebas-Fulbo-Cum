@@ -7,10 +7,8 @@ export function getHud(state: MatchState): HudState {
   return {
     homeScore: state.homeScore,
     awayScore: state.awayScore,
-    clock: Math.min(
-      MATCH_DISPLAY_SECS,
-      Math.floor((state.elapsed / MATCH_REAL_SECS) * MATCH_DISPLAY_SECS),
-    ),
+    clock: Math.floor((state.elapsed / MATCH_REAL_SECS) * MATCH_DISPLAY_SECS),
+    finished: state.fullTime,
     message: state.message,
     possession: state.owner ? state.owner.team : "none",
     homePlayer: state.controlled

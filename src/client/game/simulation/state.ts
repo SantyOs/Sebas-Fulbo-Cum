@@ -115,6 +115,7 @@ export class MatchState {
   homeScore = 0;
   awayScore = 0;
   elapsed = 0;
+  fullTime = false;
   message = "";
   messageTimer = 0;
   freeze = 0;

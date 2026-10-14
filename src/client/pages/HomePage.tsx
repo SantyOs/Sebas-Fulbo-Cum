@@ -127,7 +127,7 @@ export default function HomePage() {
       /* Session-only when storage is unavailable. */
     }
   };
-  const finished = !practice && hud.clock >= 5400;
+  const finished = !practice && hud.finished;
   return (
     <main className="football-app">
       <header className="game-header">

@@ -1,4 +1,10 @@
-import { FIELD_H, FIELD_W, M, MATCH_REAL_SECS } from "../constants";
+import {
+  FIELD_H,
+  FIELD_W,
+  KEYBOARD_MIN_CONCEDED,
+  M,
+  MATCH_REAL_SECS,
+} from "../constants";
 import { clamp } from "../math";
 import { handleSwitchKey, updateControlled, updateSwitchHint } from "./actions";
 import {
@@ -106,10 +112,13 @@ export function update(state: MatchState, dt: number) {
     return;
   }
 
-  if (!state.practice && state.elapsed < MATCH_REAL_SECS) {
+  if (!state.practice && !state.fullTime) {
     state.elapsed += dt;
-    if (state.elapsed >= MATCH_REAL_SECS) {
-      state.elapsed = MATCH_REAL_SECS;
+    const extraTime =
+      state.device === "keyboard" && state.awayScore < KEYBOARD_MIN_CONCEDED;
+    if (state.elapsed >= MATCH_REAL_SECS && !extraTime) {
+      state.fullTime = true;
+      if (state.elapsed - dt < MATCH_REAL_SECS) state.elapsed = MATCH_REAL_SECS;
       const verdict =
         state.homeScore > state.awayScore
           ? `FULL TIME — ${state.homeTeam.name.toUpperCase()} WIN!`

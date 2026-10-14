@@ -16,6 +16,7 @@ const initialHud: HudState = {
   homeScore: 0,
   awayScore: 0,
   clock: 0,
+  finished: false,
   message: "",
   possession: "none",
   homePlayer: null,

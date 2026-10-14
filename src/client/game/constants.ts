@@ -141,6 +141,8 @@ export const KICK_BUFFER = 0.5;
 // lasts MATCH_REAL_SECS of real play. accel = 5400 / MATCH_REAL_SECS.
 export const MATCH_DISPLAY_SECS = 90 * 60; // 90' shown on the clock at full time
 export const MATCH_REAL_SECS = 180; // real seconds a match actually lasts
+/** Keyboard matches run on past full time until the CPU has scored this many. */
+export const KEYBOARD_MIN_CONCEDED = 6;
 
 // ---- Steering -------------------------------------------------------------
 /** How quickly velocity approaches the desired velocity (per second). Lower =

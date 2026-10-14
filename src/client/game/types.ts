@@ -56,8 +56,9 @@ export interface PlayerEntity {
 export interface HudState {
   homeScore: number;
   awayScore: number;
-  /** In-game match seconds elapsed (counts UP, 0 -> 5400 = 90:00). */
+  /** In-game match seconds elapsed (counts UP, 0 -> 5400 = 90:00, beyond in keyboard extra time). */
   clock: number;
+  finished: boolean;
   message: string;
   possession: Team | 'none';
   /** Active player per side, for the bottom-corner broadcast lower-thirds. */

@@ -37,6 +37,28 @@ describe("match rules before renderer migration", () => {
       expect(Number.isFinite(p.x) && Number.isFinite(p.y)).toBe(true);
     }
   });
+  it("keyboard play keeps going past full time until the CPU scores six", () => {
+    const g = match();
+    g.setInputDevice("keyboard");
+    for (let i = 0; i < 40000 && g.state.elapsed < MATCH_REAL_SECS + 20; i++) {
+      g.state.awayScore = 5;
+      g.step(1 / 60, emptyInput());
+    }
+    expect(g.state.elapsed).toBeGreaterThan(MATCH_REAL_SECS);
+    expect(g.state.fullTime).toBe(false);
+    g.state.awayScore = 6;
+    g.state.freeze = 0;
+    g.step(1 / 60, emptyInput());
+    expect(g.state.fullTime).toBe(true);
+    expect(g.state.message).toContain("FULL TIME");
+  });
+  it("pad play ends at full time regardless of goals conceded", () => {
+    const g = match();
+    g.setInputDevice("pad");
+    for (let i = 0; i < 22000 && !g.state.fullTime; i++)
+      g.step(1 / 60, emptyInput());
+    expect(g.state.elapsed).toBe(MATCH_REAL_SECS);
+  });
   it("awards a goal and restarts in practice without advancing the clock", () => {
     const g = match(true);
     Object.assign(g.state.ball, { x: FIELD_W + 2, y: FIELD_H / 2, z: 0 });
