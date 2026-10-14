@@ -20,6 +20,19 @@ const find = (sim: MatchSimulation, name: string) =>
   )!;
 
 describe("office cast", () => {
+  it("keyboard faces the top CPU with roster abilities; pad boosts the user", () => {
+    const sim = castSim(),
+      sebas = find(sim, "Sebastian"),
+      base = sebas.ratings.sho;
+    sim.setInputDevice("keyboard");
+    expect(sim.state.difficulty).toBe("muyAlta");
+    expect(sebas.ratings.sho).toBe(base);
+    sim.setInputDevice("pad");
+    expect(sim.state.difficulty).toBe("media");
+    expect(sebas.ratings.sho).toBe(base + 8);
+    sim.setInputDevice("keyboard");
+    expect(sebas.ratings.sho).toBe(base);
+  });
   it("lets Yenny shoot from outside the box toward the open corner", () => {
     const s = castSim().state;
     const yenny = s.awayPlayers[9];

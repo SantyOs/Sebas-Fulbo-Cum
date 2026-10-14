@@ -87,6 +87,23 @@ export const DIFFICULTY: Record<
   alta: { speed: 1.05, tackleCd: 0.42, decision: 0.38, aim: 0.75 },
   muyAlta: { speed: 1.1, tackleCd: 0.3, decision: 0.28, aim: 0.5 },
 };
+/** Rating points added to every home player per ability level (`media` = roster). */
+export const HOME_BOOST: Record<Difficulty, number> = {
+  muyBaja: -12,
+  baja: -6,
+  media: 0,
+  alta: 8,
+  muyAlta: 14,
+};
+export type InputDevice = "keyboard" | "pad";
+/** Keyboard: strongest CPU, roster-level user team. Pad: medium CPU, boosted team. */
+export const DEVICE_LEVELS: Record<
+  InputDevice,
+  { cpu: Difficulty; home: Difficulty }
+> = {
+  keyboard: { cpu: "muyAlta", home: "media" },
+  pad: { cpu: "media", home: "alta" },
+};
 /** Off-ball forward runs in behind (both teams). */
 export const RUN_SPEED = 178;
 /** Closing down the carrier / tracking a marked attacker — a real sprint.

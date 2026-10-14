@@ -28,8 +28,10 @@ export class BrowserInput {
     document.removeEventListener("visibilitychange", this.visibility);
     this.clear();
   }
+  private padLast = false;
+  /** True only while the pad is the device last used, not merely connected. */
   get usingPad() {
-    return this.activePad !== null;
+    return this.activePad !== null && this.padLast;
   }
   setPaused(paused: boolean) {
     this.paused = paused;
@@ -56,6 +58,7 @@ export class BrowserInput {
     }
     if (!Object.values(this.bindings).includes(event.code)) return;
     event.preventDefault();
+    this.padLast = false;
     this.codes.add(event.code);
     // Capture quick press/release sequences even between animation frames.
     this.poll();
@@ -84,11 +87,18 @@ export class BrowserInput {
             p.axes.some((a) => Math.abs(a) > 0.2)),
       );
     if (pad) this.activePad = pad.index;
-    const status = pad
+    if (
+      pad?.buttons.some((b) => b.pressed) ||
+      pad?.axes.some((a) => Math.abs(a) > 0.2)
+    )
+      this.padLast = true;
+    const status = this.usingPad
       ? "Mando conectado · Dificultad media"
       : pads.some((p) => p.mapping !== "standard")
         ? "Mando no estándar. Puedes jugar con teclado · Dificultad muy alta"
-        : "Teclado · Dificultad muy alta · pulsa un botón para conectar el mando";
+        : pad
+          ? "Teclado · Dificultad muy alta"
+          : "Teclado · Dificultad muy alta · pulsa un botón para conectar el mando";
     if (status !== this.status) {
       this.status = status;
       this.onStatus(status);

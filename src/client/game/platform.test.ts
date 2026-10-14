@@ -115,6 +115,23 @@ describe("PC input", () => {
     win.dispatchEvent(new Event("blur"));
     expect(pause).toHaveBeenCalledTimes(2);
   });
+  it("treats the keyboard as the device in use even with a pad connected", () => {
+    const win = new EventTarget();
+    let pads = [pad([1])];
+    vi.stubGlobal("window", win);
+    vi.stubGlobal("document", new EventTarget());
+    vi.stubGlobal("navigator", { getGamepads: () => pads });
+    const input = new BrowserInput(DEFAULT_BINDINGS, vi.fn(), () => {});
+    input.attach();
+    input.poll();
+    expect(input.usingPad).toBe(true);
+    pads = [pad()];
+    win.dispatchEvent(
+      Object.assign(new Event("keydown"), { code: "KeyW", repeat: false }),
+    );
+    expect(input.usingPad).toBe(false);
+    input.dispose();
+  });
   it("pauses when the active pad disconnects and warns for nonstandard pads", () => {
     let pads: ReturnType<typeof pad>[] = [pad([1])];
     vi.stubGlobal("navigator", { getGamepads: () => pads });

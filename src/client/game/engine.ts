@@ -192,9 +192,7 @@ export class PitchKickGame {
     this.last = now;
     try {
       this.input.poll();
-      this.simulation.state.difficulty = this.input.usingPad
-        ? "media"
-        : "muyAlta";
+      this.simulation.setInputDevice(this.input.usingPad ? "pad" : "keyboard");
       if (!this.paused) {
         const alpha = this.clock.advance(elapsed, (dt) => {
           this.previous = this.current;

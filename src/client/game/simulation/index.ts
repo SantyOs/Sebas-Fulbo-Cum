@@ -1,5 +1,6 @@
 import type { InputFrame, MatchSnapshot } from "../contracts";
-import type { TeamData } from "../teams/types";
+import { DEVICE_LEVELS, HOME_BOOST, type InputDevice } from "../constants";
+import { makeRatings, type TeamData } from "../teams/types";
 import { kitFor } from "./factory";
 import { getHud } from "./hud";
 import { seededRandom } from "./random";
@@ -21,6 +22,29 @@ export class MatchSimulation {
       options.random ?? seededRandom(options.seed ?? 2026),
     );
     resetKickoff(this.state, "home");
+  }
+  /** CPU level and the user's team abilities follow the device in use. */
+  setInputDevice(device: InputDevice) {
+    const s = this.state;
+    if (s.device === device) return;
+    s.device = device;
+    const levels = DEVICE_LEVELS[device],
+      boost = HOME_BOOST[levels.home];
+    s.difficulty = levels.cpu;
+    s.homePlayers.forEach((p, i) => {
+      const base = s.homeTeam.players[i];
+      if (!base) return;
+      const r = base.ratings,
+        up = (v: number) => Math.max(1, Math.min(99, v + boost));
+      p.ratings = makeRatings(base.role, [
+        up(r.pac),
+        up(r.sho),
+        up(r.pas),
+        up(r.dri),
+        up(r.def),
+        up(r.phy),
+      ]);
+    });
   }
   step(dt: number, input: InputFrame) {
     if (!Number.isFinite(dt) || dt <= 0 || dt > 0.05)
