@@ -103,6 +103,6 @@ Cada gol del equipo local suena con uno de seis clips de victoria al azar. Al ga
 
 Solo los goles atribuidos a Sebastian reproducen `goal-siu.mp3`, incluido su gol gratis. Se reconoce por su identidad del reparto, aunque se cambien nombre o dorsal. Su celebraci?n predeterminada es `siu` (salto y giro); se conservan las celebraciones que el usuario haya personalizado.
 
-Al terminar con menos goles que el visitante, todos los jugadores muestran Jijijija en lugar de las nubes de texto durante 5 s; despu?s aparece Game Over de Mario con transparencia sobre el campo. Empates, victorias y entrenamiento conservan su comportamiento. Los v?deos respetan volumen, pausa, p?rdida de foco y salida/revancha. Si el navegador bloquea la reproducci?n se muestra un bot?n para iniciarla.
+Al terminar con menos goles que el visitante, todos los jugadores muestran Jijijija en lugar de las nubes de texto durante 5 s; despu?s se reproduce a pantalla el v?deo de WhatsApp (`defeat-arrest.webm`, 7,8 s) y al terminar aparece Game Over de Mario con transparencia sobre el campo. Empates, victorias y entrenamiento conservan su comportamiento. Los v?deos respetan volumen, pausa, p?rdida de foco y salida/revancha. Si el navegador bloquea la reproducci?n se muestra un bot?n para iniciarla.
 
 Validaci?n de esta secuencia: 75 pruebas y build correctos; alfa de ambos v?deos y duraciones comprobados con FFmpeg. Pendiente aceptaci?n visual y auditiva en navegador durante un partido real.

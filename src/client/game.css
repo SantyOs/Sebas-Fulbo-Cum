@@ -2002,7 +2002,7 @@
 .ht-won { margin: 40px 0 0; font-size: 22px; color: #3ddc84; display: grid; gap: 14px; }
 .ht-won small { font-size: 10px; color: #fff; }
 @media (prefers-reduced-motion: reduce) { .ht-timer i { animation: none; } }
-.defeat-mario {
+.defeat-overlay {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2011,7 +2011,7 @@
   pointer-events: none;
   z-index: 15;
 }
-.defeat-mario[hidden], .defeat-retry[hidden] { display: none; }
+.defeat-overlay[hidden], .defeat-retry[hidden] { display: none; }
 .defeat-retry {
   position: absolute;
   bottom: 20px;

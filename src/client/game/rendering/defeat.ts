@@ -4,9 +4,10 @@ import type { HudState } from "../types";
 export const isDefeat = (hud: Pick<HudState, "finished" | "homeScore" | "awayScore">) =>
   hud.finished && hud.homeScore < hud.awayScore;
 
-/** One shared video texture for all players; the second clip overlays the field. */
+/** One shared video texture for all players; later clips overlay the field in order. */
 export class DefeatPresentation {
   private clash = document.createElement("video");
+  private arrest = document.createElement("video");
   private mario = document.createElement("video");
   private retry = document.createElement("button");
   private texture: THREE.VideoTexture;
@@ -15,24 +16,26 @@ export class DefeatPresentation {
   private active: HTMLVideoElement;
   private paused = false;
   private disposed = false;
-  private second = false;
+  private stage = 0;
 
   constructor(private scene: THREE.Scene, host: HTMLElement, volume: number) {
-    for (const [video, name] of [[this.clash, "jijijija"], [this.mario, "mario"]] as const) {
+    for (const [video, name] of [[this.clash, "jijijija"], [this.arrest, "arrest"], [this.mario, "mario"]] as const) {
       video.src = `${import.meta.env.BASE_URL}assets/video/defeat-${name}.webm`;
       video.playsInline = true;
       video.preload = "auto";
       video.volume = volume;
     }
     this.active = this.clash;
-    this.mario.className = "defeat-mario";
-    this.mario.hidden = true;
+    for (const video of [this.arrest, this.mario]) {
+      video.className = "defeat-overlay";
+      video.hidden = true;
+    }
     this.mario.setAttribute("aria-label", "Game Over");
     this.retry.className = "defeat-retry";
     this.retry.textContent = "Reproducir celebración de derrota";
     this.retry.hidden = true;
     this.retry.onclick = () => this.play();
-    host.append(this.mario, this.retry);
+    host.append(this.arrest, this.mario, this.retry);
     this.texture = new THREE.VideoTexture(this.clash);
     this.texture.colorSpace = THREE.SRGBColorSpace;
     this.material = new THREE.SpriteMaterial({
@@ -41,6 +44,8 @@ export class DefeatPresentation {
     });
     this.clash.onended = () => this.next();
     this.clash.onerror = () => this.next();
+    this.arrest.onended = () => this.next();
+    this.arrest.onerror = () => this.next();
     this.mario.onerror = () => {
       this.retry.hidden = false;
       this.retry.textContent = "Reintentar vídeo Game Over";
@@ -48,12 +53,12 @@ export class DefeatPresentation {
     this.play();
   }
   private next() {
-    if (this.disposed || this.second) return;
-    this.second = true;
-    this.clash.pause();
+    if (this.disposed || this.stage === 2) return;
+    this.active.pause();
+    this.active.hidden = true;
     for (const sprite of this.sprites.values()) sprite.visible = false;
-    this.active = this.mario;
-    this.mario.hidden = false;
+    this.active = ++this.stage === 1 ? this.arrest : this.mario;
+    this.active.hidden = false;
     if (!this.paused) this.play();
   }
   private play() {
@@ -65,7 +70,7 @@ export class DefeatPresentation {
     });
   }
   setVolume(volume: number) {
-    this.clash.volume = this.mario.volume = volume;
+    this.clash.volume = this.arrest.volume = this.mario.volume = volume;
   }
   setPaused(paused: boolean) {
     this.paused = paused;
@@ -73,7 +78,7 @@ export class DefeatPresentation {
     else this.play();
   }
   update(players: ReadonlyMap<string, { root: THREE.Object3D }>) {
-    if (this.second) return;
+    if (this.stage) return;
     for (const [id, player] of players) {
       let sprite = this.sprites.get(id);
       if (!sprite) {
@@ -89,7 +94,7 @@ export class DefeatPresentation {
   }
   dispose() {
     this.disposed = true;
-    for (const video of [this.clash, this.mario]) {
+    for (const video of [this.clash, this.arrest, this.mario]) {
       video.onended = video.onerror = null;
       video.pause();
       video.removeAttribute("src");

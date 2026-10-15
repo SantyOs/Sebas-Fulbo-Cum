@@ -35,14 +35,19 @@ describe("birthday result presentation", () => {
       expect(scene.children.every(p => !p.visible)).toBe(true);
       expect(elements[1].hidden).toBe(false);
       expect(elements[1].play).toHaveBeenCalledTimes(1);
+      expect(elements[2].hidden).toBe(true);
+      elements[1].onended();
+      expect(elements[1].hidden).toBe(true);
+      expect(elements[2].hidden).toBe(false);
+      expect(elements[2].play).toHaveBeenCalledTimes(1);
       effect.setVolume(0);
-      expect(elements[1].volume).toBe(0);
+      expect(elements[2].volume).toBe(0);
       effect.setPaused(true);
-      expect(elements[1].pause).toHaveBeenCalled();
+      expect(elements[2].pause).toHaveBeenCalled();
       effect.dispose();
       expect(scene.children).toHaveLength(0);
-      expect(elements[1].removeAttribute).toHaveBeenCalledWith("src");
-      expect(elements[2].remove).toHaveBeenCalled();
+      expect(elements[2].removeAttribute).toHaveBeenCalledWith("src");
+      expect(elements[3].remove).toHaveBeenCalled();
     } finally { vi.unstubAllGlobals(); }
   });
   it("only starts defeat after the final whistle with a losing home score", () => {

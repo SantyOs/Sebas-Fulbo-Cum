@@ -1,4 +1,4 @@
-"""Prepare the two user-provided clips: python scripts/prepare-defeat-videos.py clash.mp4 mario.mp4."""
+"""Prepare the user-provided clips: python scripts/prepare-defeat-videos.py clash.mp4 mario.mp4 arrest.mp4."""
 import subprocess
 import sys
 from pathlib import Path
@@ -20,3 +20,8 @@ for source, name, key, extra in [
         "-crf", "30", "-auto-alt-ref", "0", "-c:a", "libopus",
         str(root / f"{name}.webm"),
     ], check=True)
+subprocess.run([
+    imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", sys.argv[3],
+    "-vf", "scale=480:-2", "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "34",
+    "-c:a", "libopus", "-b:a", "64k", str(root / "defeat-arrest.webm"),
+], check=True)

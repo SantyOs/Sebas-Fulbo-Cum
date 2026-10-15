@@ -12,4 +12,6 @@ Dependencia de la herramienta: `imageio-ffmpeg`; no se necesita al ejecutar el j
 
 `defeat-jijijija.webm`: archivo aportado `videoplayback.mp4`, sin el fotograma negro inicial, prolongado hasta 5 segundos manteniendo el ?ltimo fotograma, verde eliminado. `defeat-mario.webm`: archivo aportado `videoplayback (1).mp4`, fondo naranja eliminado, duraci?n original. VP9 con alfa y audio Opus, 480 px de ancho. Se comparten como assets del regalo, sin atribuirles licencia Quaternius/CC0.
 
-Regenerar: `python scripts/prepare-defeat-videos.py <clash.mp4> <mario.mp4>` (imageio-ffmpeg).
+`defeat-arrest.webm`: archivo aportado `WhatsApp Video 2026-10-15 at 2.43.38 PM.mp4`, opaco, 7,8 s, 480 px, VP9 + Opus; se reproduce entre Jijijija y Game Over.
+
+Regenerar: `python scripts/prepare-defeat-videos.py <clash.mp4> <mario.mp4> <arrest.mp4>` (imageio-ffmpeg).
