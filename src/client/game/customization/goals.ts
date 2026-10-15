@@ -9,6 +9,7 @@ export interface GoalPresentation {
   call: boolean;
   seconds: number;
   freeGoal: boolean;
+  siu: boolean;
   team?: "home" | "away";
 }
 /** Consume monotonically identified events exactly once, even across catch-up frames. */
@@ -34,6 +35,7 @@ export class GoalEventCursor {
         call: scorer?.cast?.goalSound === "call",
         seconds: celebrationSecs(scorer, event.freeGoal),
         freeGoal: !!event.freeGoal,
+        siu: event.team === "home" && !!snapshot.players.find((p) => p.id === event.playerId && p.team === event.team)?.cast?.freeGoal,
         team: event.team,
       });
     }

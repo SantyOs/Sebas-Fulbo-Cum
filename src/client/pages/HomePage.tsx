@@ -142,6 +142,7 @@ export default function HomePage() {
     }
   };
   const finished = !practice && hud.finished;
+  const lost = finished && hud.homeScore < hud.awayScore;
   useEffect(() => {
     // Waits for a CPU ad to close: its unmount would cut the half-time audio.
     if (!practice && !ads && half === "pending" && !hud.finished && hud.clock >= MATCH_DISPLAY_SECS / 2)
@@ -227,7 +228,7 @@ export default function HomePage() {
         <>
           <div className="game-viewport" key={gameKey}>
             <canvas ref={canvasRef} aria-label="Campo de fútbol 3D" />
-            {ready && !error && !finale && (
+            {ready && !error && !finale && !lost && (
               <MatchHud hud={hud} home={home} away={away} practice={practice} />
             )}
             {finale && ready && !error && (
@@ -240,7 +241,7 @@ export default function HomePage() {
                 onDone={() => setFinale(null)}
               />
             )}
-            {goal && ready && !error && !finale && (
+            {goal && ready && !error && !finale && !finished && (
               <BirthdayGoal
                 key={`${gameKey}:${goal.id}`}
                 goal={goal}
@@ -271,6 +272,12 @@ export default function HomePage() {
               </div>
             )}
           </div>
+          {lost && !paused && !settings && (
+            <div className="defeat-actions">
+              <button onClick={restart}>Revancha</button>
+              <button onClick={menu}>Volver al men?</button>
+            </div>
+          )}
           <footer className="controls-footer">
             <span className="controller-status">{controller}</span>
             <div>
@@ -281,7 +288,7 @@ export default function HomePage() {
               ))}
             </div>
           </footer>
-          {(paused || (finished && !finale)) && !settings && !error && ready && (
+          {(paused || (finished && !finale && !lost)) && !settings && !error && ready && (
             <PauseMenu
               key={finished ? "finished" : "pause"}
               reason={

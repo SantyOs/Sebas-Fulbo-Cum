@@ -373,7 +373,6 @@ export class Footballer {
     );
   }
   private celebrationName(p: PlayerView) {
-    if (this.freeGoal) return "celebrate_dance";
     const style =
       p.custom?.celebration.style ??
       p.cast?.celebrationStyle ??
@@ -540,19 +539,7 @@ export class Footballer {
         this.body.rotation.z = Math.sin(t * 4) * 0.2 * fade;
       if (style === "celebrate_dance")
         this.body.rotation.z = Math.sin(t * 10) * 0.18 * fade;
-      if (this.freeGoal) {
-        // Kirby free goal: a backflip pivoting on the hips, then the dance.
-        const u = THREE.MathUtils.clamp((t - 0.3) / 0.9, 0, 1);
-        if (u > 0 && u < 1) {
-          const angle = -Math.PI * 2 * THREE.MathUtils.smootherstep(u, 0, 1),
-            hip = 0.95;
-          this.body.rotation.x = angle;
-          this.body.rotation.z = 0;
-          this.body.position.y +=
-            Math.sin(Math.PI * u) * 1.1 + hip - hip * Math.cos(angle);
-          this.body.position.z = -hip * Math.sin(angle);
-        }
-      }
+
     }
     if (dive) this.root.rotation.y = 0;
     if (slide && p.slideDir)

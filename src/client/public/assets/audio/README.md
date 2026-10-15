@@ -13,7 +13,9 @@ usuario, para este regalo; no forman parte de los recursos Quaternius.
 | goal-pvz.mp3 | plants-vs-zombies-victory-jingle.mp3 | Gol local (al azar) |
 | goal-jojo.mp3 | jojo-jonathan-joestar-victory-theme.mp3 | Gol local (al azar) |
 | goal-victory-wav.mp3 | 12222253.mp3 | Gol local (al azar) |
-| goal-kirby.mp3 | kirbys-victory-dance.mp3 | Solo el gol gratis de Sebastian con mando |
+| goal-kirby.mp3 | kirbys-victory-dance.mp3 | Clip anterior del gol gratis; sustituido por goal-siu.mp3 |
 | win-perfect-victory.mp3 | perfect-victory-yagami-light.mp3 | Victoria, 1.º |
 | win-grefg.mp3 | thegrefg.mp3 | Victoria, 2.º |
 | halftime-albion.mp3 | YouTube C0fytYVZ_mQ (solo audio, descargado con yt-dlp) | Medio tiempo con minijuegos (81 s) |
+
+`goal-siu.mp3`: `siuuuuu.mp3` aportado por el usuario. Exclusivo de goles de Sebastian; reemplaza el uso de Kirby tambi?n en el gol gratis.

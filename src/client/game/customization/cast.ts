@@ -28,6 +28,7 @@ export const PLAYER_CAST: CastMember[] = [
     name: "Sebastian Londoño (C)",
     r: [90, 88, 88, 90, 62, 84],
     freeGoal: true,
+    celebrationStyle: "siu",
   },
   { name: "Monica Bernal", monkeyBubble: true, still: true, passShare: 0.4 },
 ];
@@ -76,7 +77,7 @@ const withCast = (team: TeamData, cast: CastMember[]): TeamData => ({
       name: p.custom?.name ?? name,
       cast: {
         ...traits,
-        celebrationStyle: CELEBRATIONS[i % CELEBRATIONS.length],
+        celebrationStyle: traits.celebrationStyle ?? CELEBRATIONS[i % CELEBRATIONS.length],
       },
       ratings: r && !p.custom ? makeRatings(p.role, r) : p.ratings,
     };

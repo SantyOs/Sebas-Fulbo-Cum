@@ -276,10 +276,10 @@ export class BirthdayAudio {
       start += buffer.duration;
     });
   }
-  /** Random victory jingle for a home goal; Kirby only for the free goal. */
-  goal(freeGoal: boolean, profile: BirthdayProfile) {
-    const name = freeGoal
-      ? FREE_GOAL_CLIP
+  /** Siu exclusively for Sebastian; other home scorers keep their random jingle. */
+  goal(siu: boolean, profile: BirthdayProfile) {
+    const name = siu
+      ? "goal-siu"
       : GOAL_CLIPS[Math.floor(Math.random() * GOAL_CLIPS.length)];
     return this.playClips([name], profile, { seconds: 8 });
   }

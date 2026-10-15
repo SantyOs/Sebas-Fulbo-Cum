@@ -49,6 +49,7 @@ export class PitchKickGame {
   private castLines = new CastLineCursor();
   private won = false;
   private finale = false;
+  private lost = false;
   private unlockAudio = () => {
     void birthdayAudio.unlock().catch(() => {});
   };
@@ -72,6 +73,7 @@ export class PitchKickGame {
       (message) => this.fail(message),
     );
     this.renderer.setCameraZoom(options.birthday?.cameraZoom ?? 1.18);
+    this.renderer.setVolume(options.birthday?.volume ?? 0.65);
     this.input = new BrowserInput(
       DEFAULT_BINDINGS,
       (reason) => {
@@ -139,6 +141,7 @@ export class PitchKickGame {
   setBirthday(profile: BirthdayProfile) {
     this.options.birthday = profile;
     this.renderer.setCameraZoom(profile.cameraZoom);
+    this.renderer.setVolume(profile.volume);
   }
   private goalEvents() {
     for (const goal of this.goalCursor.consume(this.current)) {
@@ -147,12 +150,16 @@ export class PitchKickGame {
         birthdayAudio.stop();
         void birthdayAudio.playCall(true, profile);
       } else if (profile && goal.team === "home")
-        void birthdayAudio.goal(goal.freeGoal, profile);
+        void birthdayAudio.goal(goal.siu, profile);
       else if (profile)
         void birthdayAudio.play(goal.sound, goal.volume, profile);
       this.options.onGoal?.(goal);
     }
     const { hud } = this.current;
+    if (!this.lost && hud.finished && hud.homeScore < hud.awayScore) {
+      this.lost = true;
+      birthdayAudio.stop();
+    }
     if (!this.won && hud.finished && hud.homeScore > hud.awayScore) {
       this.won = true;
       if (this.options.birthday) void birthdayAudio.win(this.options.birthday);

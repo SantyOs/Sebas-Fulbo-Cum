@@ -1,3 +1,4 @@
+import { DefeatPresentation, isDefeat } from "./defeat";
 import { GoalFocus } from "./goal-focus";
 import * as THREE from "three";
 import type {
@@ -34,10 +35,17 @@ export class ThreeRenderer implements GameRenderer {
     if (this.disposed || this.finale) return;
     this.finale = { player: playerId };
   }
+  private defeat?: DefeatPresentation;
+  private volume = 0.65;
+  setVolume(volume: number) {
+    this.volume = volume;
+    this.defeat?.setVolume(volume);
+  }
   setPaused(paused: boolean) {
     this.paused = paused;
+    this.defeat?.setPaused(paused);
     if (paused) this.monkeyVideo?.pause();
-    else if (this.monkeyVideo) void this.monkeyVideo.play().catch(() => {});
+    else if (this.monkeyVideo && !this.defeat) void this.monkeyVideo.play().catch(() => {});
   }
   private addMonkey(playerId: string, name: string) {
     this.monkeyPlayer = playerId;
@@ -403,6 +411,15 @@ export class ThreeRenderer implements GameRenderer {
         );
       }
     }
+    if (isDefeat(current.hud)) {
+      if (!this.defeat && this.canvas.parentElement) {
+        this.defeat = new DefeatPresentation(this.scene, this.canvas.parentElement, this.volume);
+        this.monkeyVideo?.pause();
+      }
+      for (const bubble of this.bubbles.values()) bubble.sprite.visible = false;
+      if (this.monkeySprite) this.monkeySprite.visible = false;
+      this.defeat?.update(this.players);
+    }
     const ripple = [current.netRipple.left, current.netRipple.right];
     this.stadium.nets.forEach((net, i) => {
       net.scale.x = 1 + Math.sin(current.tick * 0.7) * ripple[i] * 0.1;
@@ -426,6 +443,7 @@ export class ThreeRenderer implements GameRenderer {
     if (this.disposed) return;
     this.disposed = true;
     this.observer.disconnect();
+    this.defeat?.dispose();
     if (this.monkeyVideo) {
       this.monkeyVideo.onerror = null;
       this.monkeyVideo.pause();
