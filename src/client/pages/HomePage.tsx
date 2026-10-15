@@ -8,6 +8,7 @@ import { BirthdayGoal } from "../components/game/BirthdayGoal";
 import { CpuAds } from "../components/game/CpuAds";
 import { IntroVideos } from "../components/game/IntroVideos";
 import { HalfTime } from "../components/game/HalfTime";
+import { Finale } from "../components/game/Finale";
 import { MATCH_DISPLAY_SECS } from "../game/constants";
 import type { GoalPresentation } from "../game/customization/goals";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
@@ -74,6 +75,8 @@ export default function HomePage() {
     [pauseReason, setPauseReason] = useState("");
   // Once per match: pending → showing at 45' → done.
   const [half, setHalf] = useState<"pending" | "showing" | "done">("pending");
+  // Name of the player lifting the Grinch while the winning finale plays.
+  const [finale, setFinale] = useState<string | null>(null);
   const [bindings, setBindings] = useState(loadBindings),
     [quality, setQuality] = useState<GraphicsQuality>(loadQuality);
   const home = teams[homeIndex],
@@ -81,6 +84,7 @@ export default function HomePage() {
   const { canvasRef, gameRef, hud, ready, error, controller } = useGame({
     birthday,
     onGoal: setGoal,
+    onFinale: setFinale,
     active: phase === "playing",
     gameKey,
     home,
@@ -110,6 +114,7 @@ export default function HomePage() {
   };
   const restart = () => {
     setHalf("pending");
+    setFinale(null);
     setGoal(null);
     setAds(false);
     setPaused(false);
@@ -118,6 +123,7 @@ export default function HomePage() {
     setGameKey((k) => k + 1);
   };
   const menu = () => {
+    setFinale(null);
     setAds(false);
     setSettings(false);
     setPaused(false);
@@ -221,10 +227,20 @@ export default function HomePage() {
         <>
           <div className="game-viewport" key={gameKey}>
             <canvas ref={canvasRef} aria-label="Campo de fútbol 3D" />
-            {ready && !error && (
+            {ready && !error && !finale && (
               <MatchHud hud={hud} home={home} away={away} practice={practice} />
             )}
-            {goal && ready && !error && (
+            {finale && ready && !error && (
+              <Finale
+                key={gameKey}
+                player={finale}
+                score={`${home.name.toUpperCase()} ${hud.homeScore} – ${hud.awayScore} ${away.name.toUpperCase()}`}
+                dedication={birthday.dedication}
+                paused={paused || settings}
+                onDone={() => setFinale(null)}
+              />
+            )}
+            {goal && ready && !error && !finale && (
               <BirthdayGoal
                 key={`${gameKey}:${goal.id}`}
                 goal={goal}
@@ -265,7 +281,7 @@ export default function HomePage() {
               ))}
             </div>
           </footer>
-          {(paused || finished) && !settings && !error && ready && (
+          {(paused || (finished && !finale)) && !settings && !error && ready && (
             <PauseMenu
               key={finished ? "finished" : "pause"}
               reason={

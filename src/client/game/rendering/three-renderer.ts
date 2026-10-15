@@ -8,6 +8,7 @@ import type {
 import { FIELD_H, FIELD_W, PX_PER_M } from "../constants";
 import type { TeamData } from "../teams/types";
 import { Footballer, loadPlayerAssets, type PlayerAssets } from "./footballer";
+import { Finale } from "./finale";
 import { buildStadium, type Stadium } from "./stadium";
 
 export class ThreeRenderer implements GameRenderer {
@@ -27,6 +28,12 @@ export class ThreeRenderer implements GameRenderer {
   private monkeySprite?: THREE.Sprite;
   private monkeyPlayer?: string;
   private paused = false;
+  private finale?: { player: string; scene?: Finale };
+  /** Winning finale around this player; ignored before assets load. */
+  startFinale(playerId: string) {
+    if (this.disposed || this.finale) return;
+    this.finale = { player: playerId };
+  }
   setPaused(paused: boolean) {
     this.paused = paused;
     if (paused) this.monkeyVideo?.pause();
@@ -350,7 +357,17 @@ export class ThreeRenderer implements GameRenderer {
       look.lerp(target, focus.weight);
     }
     this.camera.lookAt(look);
+    const lifter = this.finale && this.players.get(this.finale.player);
+    if (this.finale && lifter) {
+      this.finale.scene ??= new Finale(this.assets, this.renderer, this.scene);
+      this.finale.scene.update(dt, lifter, this.camera, {
+        position: this.camera.position.clone(),
+        look,
+      });
+      this.dropBubble(this.finale.player);
+    }
     const controlled = this.players.get(current.controlledId);
+    this.marker.visible = this.ring.visible = !this.finale;
     if (controlled) {
       this.marker.position
         .copy(controlled.root.position)
@@ -361,7 +378,7 @@ export class ThreeRenderer implements GameRenderer {
     const hint = current.switchHintId
       ? this.players.get(current.switchHintId)
       : undefined;
-    this.switchMarker.visible = !!hint;
+    this.switchMarker.visible = !!hint && !this.finale;
     if (hint)
       this.switchMarker.position
         .copy(hint.root.position)
@@ -419,6 +436,7 @@ export class ThreeRenderer implements GameRenderer {
     this.monkeySprite?.material.dispose();
     if (this.monkeySprite) this.scene.remove(this.monkeySprite);
     this.canvas.removeEventListener("webglcontextlost", this.contextLost);
+    this.finale?.scene?.dispose();
     this.players.forEach((p) => p.dispose());
     for (const id of [...this.bubbles.keys()]) this.dropBubble(id);
     this.players.clear();

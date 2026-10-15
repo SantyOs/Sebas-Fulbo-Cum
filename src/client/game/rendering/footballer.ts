@@ -171,6 +171,10 @@ export class Footballer {
   private geometries: THREE.BufferGeometry[] = [];
   private textures: THREE.Texture[] = [];
   private orientation = 0;
+  /** Skinned body, for presentation-only poses such as the finale. */
+  get rig() {
+    return this.body;
+  }
   constructor(assets: PlayerAssets, p: PlayerView, team: TeamData) {
     const photo = effectivePhoto(p);
     let photoTexture: THREE.Texture | undefined;

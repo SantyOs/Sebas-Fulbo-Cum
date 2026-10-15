@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 
-type Point = [number, number, number];
+export type Point = [number, number, number];
 type Arms = {
   left: Point;
   right: Point;
@@ -35,7 +35,7 @@ const poses: Record<string, Arms> = {
 };
 
 /** Aim a bone through its child in model space, respecting the imported rig axes. */
-function aim(
+export function aim(
   bone: THREE.Object3D,
   child: THREE.Object3D,
   target: THREE.Vector3,
@@ -58,8 +58,9 @@ function aim(
   bone.updateWorldMatrix(false, true);
 }
 
-/** Two-bone arm solve. The pole keeps the elbow outside the chest. */
-function reach(
+/** Two-bone arm solve in the rig's model space (the finale poses live,
+ *  transformed bodies). The pole keeps the elbow outside the chest. */
+export function reach(
   rig: THREE.Object3D,
   side: "l" | "r",
   destination: Point,
@@ -73,7 +74,7 @@ function reach(
   const wrist = hand.getWorldPosition(new THREE.Vector3());
   const a = shoulder.distanceTo(elbow),
     b = elbow.distanceTo(wrist);
-  const delta = new THREE.Vector3(...destination).sub(shoulder);
+  const delta = rig.localToWorld(new THREE.Vector3(...destination)).sub(shoulder);
   const distance = THREE.MathUtils.clamp(
     delta.length(),
     Math.abs(a - b) + 0.005,
@@ -81,9 +82,11 @@ function reach(
   );
   const direction = delta.normalize();
   const target = shoulder.clone().addScaledVector(direction, distance);
-  const bend = new THREE.Vector3(
-    ...(pole ?? [side === "l" ? 0.48 : -0.48, 1.35, 0.15]),
-  ).sub(shoulder);
+  const bend = rig
+    .localToWorld(
+      new THREE.Vector3(...(pole ?? [side === "l" ? 0.48 : -0.48, 1.35, 0.15])),
+    )
+    .sub(shoulder);
   bend.addScaledVector(direction, -bend.dot(direction)).normalize();
   const along = (a * a - b * b + distance * distance) / (2 * distance);
   const joint = shoulder

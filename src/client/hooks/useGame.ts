@@ -26,6 +26,7 @@ const initialHud: HudState = {
 export function useGame(options: {
   birthday: BirthdayProfile;
   onGoal: (goal: GoalPresentation) => void;
+  onFinale: (playerName: string) => void;
   active: boolean;
   gameKey: number;
   home: TeamData;
@@ -74,6 +75,7 @@ export function useGame(options: {
           practice,
           birthday: latest.current.birthday,
           onGoal: (goal) => latest.current.onGoal(goal),
+          onFinale: (name) => latest.current.onFinale(name),
           quality: latest.current.quality,
           seed: 2026 + gameKey,
           onReady: () => {

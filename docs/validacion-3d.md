@@ -61,3 +61,10 @@ Las rotaciones genéricas de los brazos no correspondían a los ejes del esquele
 La cubierta de pelo corto anterior terminaba por debajo de la parte superior del cráneo. `hair.ts` construye una cubierta sobre el cuero cabelludo, con línea frontal por encima de los ojos y cobertura lateral/posterior. Se conserva la opción explícita Rapado.
 
 Se comprobaron posiciones de manos delante de los hombros en los once festejos, manos sobre la cabeza en brazos arriba, manos juntas al frente para corazón y cobertura del cráneo en los cuatro estilos con pelo. Se inspeccionaron ilustraciones geométricas por CPU de frente y perfil (brazos arriba, corazón, dab, avioncito, saludo y salto/giro); no sustituyen la revisión de materiales, iluminación y reproducción en WebGL. `AVATAR_QA_FILE` permite exportar esa geometría de inspección al ejecutar `avatar-presentation.test.ts`.
+
+## Final de campeón — 15 de octubre de 2026
+
+- `npm test`: 74 pruebas en diez archivos, incluida `finale.test.ts`. `npm run build` correcto; sigue el aviso del chunk de Three.js.
+- Prototipo en el navegador integrado con el motor real (estadio, Sebastian, cámara): se revisaron fotogramas de cada fase y el primer plano del Grinchito.
+- Partido real en desarrollo con un mando simulado (`navigator.getGamepads`) y marcador 2–1 a segundos del final: el final arrancó, recorrió los 10 s con la cámara de héroe, ocultó marcador y cono de control, Enter abrió «FINAL DEL PARTIDO» y Revancha liberó el renderer sin errores. El panel estaba oculto: el bucle se avanzó a mano y no hubo capturas del final dentro del partido. **Pendiente:** verlo con un mando físico y escuchar el audio de victoria a la vez.
+

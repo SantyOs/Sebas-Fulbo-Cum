@@ -163,6 +163,8 @@ export const SKIN_TONES = ["#e0ac7e", "#c98c5e", "#8d5a3b", "#f0c49a"];
 export const CELEBRATION_SECS = 4;
 /** Extra seconds for the gamepad free goal's dance and backflip. */
 export const FREE_GOAL_BONUS = 3;
+/** Winning-with-a-pad finale: the lift, title and dedication, in seconds. */
+export const FINALE_SECS = 10;
 export const celebrationSecs = (
   scorer?: { cast?: { celebrationBonus?: number } } | null,
   freeGoal = false,

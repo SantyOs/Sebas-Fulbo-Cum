@@ -1001,6 +1001,173 @@
     transform: translate(80px, 100vh) rotate(780deg);
   }
 }
+.finale {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 6;
+  color: #fff;
+  font-family: var(--font-body);
+}
+.finale * {
+  animation-fill-mode: both;
+}
+.finale-paused,
+.finale-paused * {
+  animation-play-state: paused !important;
+}
+.finale-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11%;
+  background: #05080c;
+  animation: finale-bar 0.9s ease-in-out;
+}
+.finale-bar-top {
+  top: 0;
+  --from: -100%;
+}
+.finale-bar-bottom {
+  bottom: 0;
+  --from: 100%;
+}
+@keyframes finale-bar {
+  from {
+    transform: translateY(var(--from));
+  }
+}
+.finale-fulltime,
+.finale-champ {
+  position: absolute;
+  padding: 12px 30px;
+  border: 1px solid #c6ff2e80;
+  border-radius: 10px;
+  background: #0d193ee6;
+  box-shadow: 0 12px 60px #0006;
+}
+.finale-fulltime {
+  top: 14%;
+  left: 50%;
+  translate: -50% 0;
+  text-align: center;
+  white-space: nowrap;
+  font-family: var(--font-heading);
+  font-size: clamp(14px, 1.6vw, 20px);
+  letter-spacing: 0.18em;
+  animation: finale-fulltime 2.2s 0.1s;
+}
+.finale-fulltime b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.2vw, 44px);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: #dcff98;
+}
+@keyframes finale-fulltime {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  14%,
+  82% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.finale-champ {
+  bottom: 14%;
+  left: 5%;
+  max-width: min(560px, 80%);
+  padding: 14px 28px 16px;
+  border-left: 4px solid #c6ff2e;
+  animation: finale-champ 0.5s 3.75s ease-out;
+}
+@keyframes finale-champ {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+.finale-champ > * {
+  display: block;
+}
+.finale-kicker {
+  font-family: var(--font-heading);
+  font-size: clamp(11px, 1.1vw, 14px);
+  letter-spacing: 0.32em;
+  color: #c6ff2e;
+}
+.finale-champ strong {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 5.6vw, 80px);
+  font-weight: 500;
+  line-height: 0.9;
+  color: #dcff98;
+}
+.finale-name {
+  font-family: var(--font-heading);
+  font-size: clamp(14px, 1.5vw, 20px);
+  letter-spacing: 0.24em;
+}
+.finale-champ p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  animation: finale-fade 0.6s 7.2s;
+}
+.finale-press {
+  position: absolute;
+  right: 4%;
+  bottom: 3.5%;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: #c6ff2e;
+  opacity: 0;
+  animation: finale-blink 1.2s 8.4s infinite;
+  animation-fill-mode: none;
+}
+@keyframes finale-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes finale-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+.finale-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff8dc;
+  opacity: 0;
+  animation: finale-flash 0.35s 3.6s ease-out;
+  animation-fill-mode: none;
+}
+@keyframes finale-flash {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finale-flash {
+    display: none;
+  }
+}
 @media (max-width: 800px) {
   .editor-backdrop {
     padding: 5px;

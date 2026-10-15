@@ -5,6 +5,7 @@ import type { BirthdayProfile } from "./customization/profile";
 import type { GraphicsQuality, MatchSnapshot } from "./contracts";
 import { DEFAULT_BINDINGS } from "./keybindings";
 import { BrowserInput, type PauseReason } from "./input/browser";
+import { finaleLifter } from "./rendering/finale";
 import { ThreeRenderer } from "./rendering/three-renderer";
 import { FixedStepClock } from "./runtime/fixed-step";
 import { FrameMetrics } from "./runtime/performance";
@@ -18,6 +19,8 @@ export { CANVAS_W, CANVAS_H } from "./constants";
 export interface GameOptions {
   birthday?: BirthdayProfile;
   onGoal?: (goal: GoalPresentation) => void;
+  /** Win with a pad: the 3D finale started around this player. */
+  onFinale?: (playerName: string) => void;
   practice?: boolean;
   quality?: GraphicsQuality;
   seed?: number;
@@ -45,6 +48,7 @@ export class PitchKickGame {
   private goalCursor = new GoalEventCursor();
   private castLines = new CastLineCursor();
   private won = false;
+  private finale = false;
   private unlockAudio = () => {
     void birthdayAudio.unlock().catch(() => {});
   };
@@ -71,6 +75,8 @@ export class PitchKickGame {
     this.input = new BrowserInput(
       DEFAULT_BINDINGS,
       (reason) => {
+        // Start/Esc belong to the finale overlay (skip), not to pausing.
+        if (reason === "manual" && this.finale) return;
         this.setPaused(true);
         options.onPause?.(reason);
       },
@@ -150,6 +156,12 @@ export class PitchKickGame {
     if (!this.won && hud.finished && hud.homeScore > hud.awayScore) {
       this.won = true;
       if (this.options.birthday) void birthdayAudio.win(this.options.birthday);
+      const lifter = finaleLifter(this.current, this.input.usingPad);
+      if (lifter) {
+        this.finale = true;
+        this.renderer.startFinale(lifter.id);
+        this.options.onFinale?.(lifter.name);
+      }
     }
     for (const line of this.castLines.consume(this.current)) {
       if (line.text)
